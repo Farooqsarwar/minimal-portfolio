@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>portfolio</title>
+  <!-- Base href for GitHub Pages deployment -->
   <base href="/minimal-portfolio/">
-  <meta name="description" content="A new Flutter project.">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Flutter Portfolio - Farooq Sarwar">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="portfolio">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Farooq Sarwar - Portfolio</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-<script src="flutter.js" defer></script>
-<script>
-  window.addEventListener('load', function(ev) {
-    _flutter.loader.loadEntrypoint({
-      serviceWorker: {
-        serviceWorkerVersion: serviceWorkerVersion,
-      },
-      onEntrypointLoaded: function(engineInitializer) {
-        engineInitializer.initializeEngine().then(function(appRunner) {
-          appRunner.runApp();
-        });
-      }
-    });
-  });
-</script>
+  <!-- ✅ Use the new bootstrap script -->
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

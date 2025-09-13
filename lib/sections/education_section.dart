@@ -59,7 +59,10 @@ class EducationSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+// Replace the Row section in your education section with this updated code:
+
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           padding: EdgeInsets.all(12),
@@ -80,29 +83,33 @@ class EducationSection extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 20),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'BS in Computer Science',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: isMobile ? 18 : (isTablet ? 20 : 24),
-                                fontWeight: FontWeight.w600,
+                        Expanded(  // Add this Expanded widget
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'BS in Computer Science',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isMobile ? 18 : (isTablet ? 20 : 24),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Iqra university Islamabad campus • 2021 - 2025',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: isMobile ? 14 : 16,
+                              SizedBox(height: 4), // Add some spacing
+                              Text(
+                                'Iqra university Islamabad campus • 2021-2025',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: isMobile ? 14 : 16,
+                                ),
+                                overflow: TextOverflow.ellipsis, // Handle overflow
+                                maxLines: isMobile ? 2 : 1, // Allow 2 lines on mobile
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
-                    ),
-                    SizedBox(height: 30),
+                    ),                    SizedBox(height: 30),
                     buildEducationItem('Key Courses:', 'Data Structures & Algorithms, Object-Oriented Programming, Database Systems, Artificial Intelligence, Web Development, Mobile App Development', isMobile, isTablet),
                     SizedBox(height: 20),
                     SizedBox(height: 20),

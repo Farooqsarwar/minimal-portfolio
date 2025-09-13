@@ -258,30 +258,6 @@ Widget buildEnhancedProjectCard(
                 SizedBox(height: 20),
                 Row(
                   children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          HapticFeedback.mediumImpact();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.visibility, size: 18),
-                            SizedBox(width: 8),
-                            Text('View Demo'),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12),
                     Container(
                       width: 48,
                       height: 48,
@@ -375,27 +351,6 @@ Widget buildEnhancedProjectCard(
                       SizedBox(height: 20),
                       Row(
                         children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              HapticFeedback.mediumImpact();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: color,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.visibility, size: 18),
-                                SizedBox(width: 8),
-                                Text('View Live Demo'),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: 12),
                           OutlinedButton(
                             onPressed: githubUrl != null
                                 ? () async {

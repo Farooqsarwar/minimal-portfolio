@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:portfolio/sections/resume_downloader.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/common_widgets.dart';
 
 class HeroSection extends StatelessWidget {
@@ -35,11 +37,7 @@ class HeroSection extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Color(0xFF0A0E27),
-                Color(0xFF1A1F3A),
-                Color(0xFF2D3561),
-              ],
+              colors: [Color(0xFF0A0E27), Color(0xFF1A1F3A), Color(0xFF2D3561)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -64,7 +62,10 @@ class HeroSection extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: LinearGradient(
-                                  colors: [Color(0xFF00D4FF), Color(0xFF0099CC)],
+                                  colors: [
+                                    Color(0xFF00D4FF),
+                                    Color(0xFF0099CC),
+                                  ],
                                 ),
                                 boxShadow: [
                                   BoxShadow(
@@ -87,9 +88,13 @@ class HeroSection extends StatelessWidget {
                           ),
                           SizedBox(height: 30),
                           ShaderMask(
-                            shaderCallback: (bounds) => LinearGradient(
-                              colors: [Color(0xFF00D4FF), Color(0xFF0099CC)],
-                            ).createShader(bounds),
+                            shaderCallback:
+                                (bounds) => LinearGradient(
+                                  colors: [
+                                    Color(0xFF00D4FF),
+                                    Color(0xFF0099CC),
+                                  ],
+                                ).createShader(bounds),
                             child: Text(
                               'Farooq Sarwar',
                               style: TextStyle(
@@ -125,19 +130,135 @@ class HeroSection extends StatelessWidget {
                             ),
                           ],
                           SizedBox(height: 40),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+// Fixed responsive button section
+                          isMobile
+                              ? Column(
                             children: [
+                              // Mobile: Stack buttons vertically
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    HapticFeedback.mediumImpact();
+
+                                    const githubUrl = 'https://github.com/farooqsarwar';
+
+                                    try {
+                                      if (await canLaunchUrl(Uri.parse(githubUrl))) {
+                                        await launchUrl(
+                                          Uri.parse(githubUrl),
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      } else {
+                                        throw Exception('Could not launch GitHub URL');
+                                      }
+                                    } catch (e) {
+                                      print('Error opening GitHub: $e');
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Unable to open GitHub. Please try again.'),
+                                          backgroundColor: Colors.red,
+                                          duration: Duration(seconds: 3),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF00D4FF),
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    elevation: 8,
+                                    shadowColor: Color(0xFF00D4FF).withOpacity(0.3),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'All Projects',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(Icons.open_in_new, size: 18),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: () => GoogleDriveResumeDownload.downloadResume(context),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: BorderSide(color: Colors.white30),
+                                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.download, size: 18),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Resume',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                              : Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 16,
+                            children: [
+                              // Desktop/Tablet: Side by side with wrap
                               ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   HapticFeedback.mediumImpact();
+
+                                  const githubUrl = 'https://github.com/farooqsarwar';
+
+                                  try {
+                                    if (await canLaunchUrl(Uri.parse(githubUrl))) {
+                                      await launchUrl(
+                                        Uri.parse(githubUrl),
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    } else {
+                                      throw Exception('Could not launch GitHub URL');
+                                    }
+                                  } catch (e) {
+                                    print('Error opening GitHub: $e');
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Unable to open GitHub. Please try again.'),
+                                        backgroundColor: Colors.red,
+                                        duration: Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFF00D4FF),
                                   foregroundColor: Colors.white,
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: isMobile ? 20 : 28,
-                                    vertical: isMobile ? 12 : 14,
+                                    horizontal: isTablet ? 24 : 32,
+                                    vertical: isTablet ? 12 : 14,
                                   ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
@@ -149,44 +270,51 @@ class HeroSection extends StatelessWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      'View Projects',
+                                      'View All Projects',
                                       style: TextStyle(
-                                        fontSize: isMobile ? 14 : 16,
+                                        fontSize: isTablet ? 15 : 16,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                     SizedBox(width: 8),
-                                    Icon(Icons.arrow_forward, size: isMobile ? 16 : 20),
+                                    Icon(
+                                      Icons.open_in_new,
+                                      size: isTablet ? 18 : 20,
+                                    ),
                                   ],
                                 ),
                               ),
-                              if (!isMobile) ...[
-                                SizedBox(width: 16),
-                                OutlinedButton(
-                                  onPressed: () {
-                                    HapticFeedback.lightImpact();
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    side: BorderSide(color: Colors.white30),
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 28,
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
+                              OutlinedButton(
+                                onPressed: () => GoogleDriveResumeDownload.downloadResume(context),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  side: BorderSide(color: Colors.white30),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isTablet ? 24 : 28,
+                                    vertical: isTablet ? 12 : 14,
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.download, size: 18),
-                                      SizedBox(width: 8),
-                                      Text('Resume'),
-                                    ],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
                                 ),
-                              ],
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.download,
+                                      size: isTablet ? 16 : 18,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Resume',
+                                      style: TextStyle(
+                                        fontSize: isTablet ? 15 : 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -209,7 +337,9 @@ class HeroSection extends StatelessWidget {
       duration: Duration(milliseconds: 1500 + (index * 50)),
       builder: (context, value, child) {
         return Positioned(
-          left: (random * screenWidth / 100) + (value * 30 * (index % 2 == 0 ? 1 : -1)),
+          left:
+              (random * screenWidth / 100) +
+              (value * 30 * (index % 2 == 0 ? 1 : -1)),
           top: (index % 8) * 80.0 + (value * 40),
           child: Opacity(
             opacity: 0.1 + (value * 0.3),
@@ -251,12 +381,20 @@ class HeroSection extends StatelessWidget {
   }
 
   Widget _buildFloatingShape(int index) {
-    final shapes = [Icons.hexagon, Icons.circle, Icons.square, Icons.panorama_wide_angle_sharp, Icons.star];
+    final shapes = [
+      Icons.hexagon,
+      Icons.circle,
+      Icons.square,
+      Icons.panorama_wide_angle_sharp,
+      Icons.star,
+    ];
     return AnimatedBuilder(
       animation: floatingAnimation,
       builder: (context, child) {
         return Positioned(
-          left: (index * screenWidth / 6) + (floatingAnimation.value * (index % 2 == 0 ? 1 : -1)),
+          left:
+              (index * screenWidth / 6) +
+              (floatingAnimation.value * (index % 2 == 0 ? 1 : -1)),
           top: 100.0 + (index * 100.0) + (floatingAnimation.value * 2),
           child: Opacity(
             opacity: 0.05,

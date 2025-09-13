@@ -95,6 +95,10 @@ class _PortfolioHomePageState extends State<PortfolioHomePage>
       );
     }
     HapticFeedback.lightImpact();
+    // Close drawer after navigation on mobile
+    if (MediaQuery.of(context!).size.width < 600) {
+      Navigator.of(context!).pop();
+    }
   }
 
   @override
@@ -105,6 +109,7 @@ class _PortfolioHomePageState extends State<PortfolioHomePage>
 
     return Scaffold(
       backgroundColor: Color(0xFF0A0E27),
+      endDrawer: isMobile ? _buildMobileDrawer() : null,
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
@@ -172,6 +177,172 @@ class _PortfolioHomePageState extends State<PortfolioHomePage>
     );
   }
 
+  Widget _buildMobileDrawer() {
+    return Drawer(
+      backgroundColor: Color(0xFF0A0E27),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0A0E27), Color(0xFF1A1F3A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Drawer Header
+              Container(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF00D4FF), Color(0xFF0099CC)],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFF00D4FF).withOpacity(0.3),
+                            blurRadius: 15,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.code,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Farooq Sarwar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Flutter Developer',
+                      style: TextStyle(
+                        color: Color(0xFF00D4FF),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Navigation Items
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildDrawerItem(
+                      icon: Icons.person_outline,
+                      title: 'About',
+                      onTap: () => _scrollToSection(_aboutKey),
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.star_outline,
+                      title: 'Skills',
+                      onTap: () => _scrollToSection(_skillsKey),
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.work_outline,
+                      title: 'Projects',
+                      onTap: () => _scrollToSection(_projectsKey),
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.school_outlined,
+                      title: 'Education',
+                      onTap: () => _scrollToSection(_educationKey),
+                    ),
+                    _buildDrawerItem(
+                      icon: Icons.contact_mail_outlined,
+                      title: 'Contact',
+                      onTap: () => _scrollToSection(_contactKey),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Footer
+              Container(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Divider(color: Colors.white24),
+                    SizedBox(height: 16),
+                    Text(
+                      '© 2024 Farooq Sarwar',
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        leading: Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF00D4FF).withOpacity(0.2),
+                Color(0xFF0099CC).withOpacity(0.2),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Color(0xFF00D4FF).withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: Color(0xFF00D4FF),
+            size: 20,
+          ),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        hoverColor: Color(0xFF00D4FF).withOpacity(0.1),
+        splashColor: Color(0xFF00D4FF).withOpacity(0.2),
+      ),
+    );
+  }
+
   Widget _buildAppBar(bool isMobile, bool isTablet, double screenWidth) {
     return SliverAppBar(
       expandedHeight: 0,
@@ -234,7 +405,31 @@ class _PortfolioHomePageState extends State<PortfolioHomePage>
         ],
       ),
       actions: isMobile
-          ? []
+          ? [
+        Builder(
+          builder: (context) => IconButton(
+            icon: Container(
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF00D4FF), Color(0xFF0099CC)],
+                ),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                Icons.menu,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer();
+              HapticFeedback.lightImpact();
+            },
+          ),
+        ),
+        SizedBox(width: 8),
+      ]
           : [
         _buildNavButton('About', () => _scrollToSection(_aboutKey)),
         _buildNavButton('Skills', () => _scrollToSection(_skillsKey)),

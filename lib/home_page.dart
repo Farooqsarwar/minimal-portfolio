@@ -280,7 +280,7 @@ class _PortfolioHomePageState extends State<PortfolioHomePage>
                     Divider(color: Colors.white24),
                     SizedBox(height: 16),
                     Text(
-                      '© 2024 Farooq Sarwar',
+                      '© Farooq Sarwar',
                       style: TextStyle(
                         color: Colors.white54,
                         fontSize: 12,

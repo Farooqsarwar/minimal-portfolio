@@ -20,7 +20,7 @@ class FooterSection extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              '© 2024 Farooq Sarwar. All rights reserved.',
+              ' Farooq Sarwar. All rights reserved.',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.6),
                 fontSize: 14,

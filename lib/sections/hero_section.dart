@@ -1,411 +1,251 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:portfolio/sections/resume_downloader.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_strings.dart';
 import '../widgets/common_widgets.dart';
 
-class HeroSection extends StatelessWidget {
-  final Animation<double> fadeAnimation;
-  final Animation<Offset> slideAnimation;
-  final Animation<double> floatingAnimation;
-  final bool isMobile;
-  final bool isTablet;
-  final double screenWidth;
+class HeroSection extends StatefulWidget {
+  final VoidCallback onViewWork;
+  final VoidCallback onContact;
+  const HeroSection({super.key, required this.onViewWork, required this.onContact});
+  @override State<HeroSection> createState() => _HeroSectionState();
+}
 
-  HeroSection({
-    required this.fadeAnimation,
-    required this.slideAnimation,
-    required this.floatingAnimation,
-    required this.isMobile,
-    required this.isTablet,
-    required this.screenWidth,
-  });
+class _HeroSectionState extends State<HeroSection> with TickerProviderStateMixin {
+  late final List<AnimationController> _ctrls;
+  late final List<Animation<double>> _anims;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrls = List.generate(5, (i) => AnimationController(vsync: this, duration: const Duration(milliseconds: 700)));
+    _anims = _ctrls.map((c) => CurvedAnimation(parent: c, curve: Curves.easeOut)).toList();
+    for (int i = 0; i < _ctrls.length; i++) {
+      Future.delayed(Duration(milliseconds: 180 + i * 140), () { if (mounted) _ctrls[i].forward(); });
+    }
+  }
+
+  @override
+  void dispose() { for (final c in _ctrls) c.dispose(); super.dispose(); }
+
+  Widget _fade(int i, Widget child) => FadeTransition(
+    opacity: _anims[i],
+    child: SlideTransition(
+      position: Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(_anims[i]),
+      child: child,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final heroHeight = isMobile ? 500.0 : (isTablet ? 550.0 : 650.0);
-    final avatarSize = isMobile ? 50.0 : (isTablet ? 55.0 : 65.0);
-    final titleSize = isMobile ? 28.0 : (isTablet ? 36.0 : 52.0);
-    final subtitleSize = isMobile ? 14.0 : (isTablet ? 16.0 : 22.0);
+    final w = MediaQuery.of(context).size.width;
+    final isMobile = w < 768;
+    final px = isMobile ? 24.0 : 60.0;
 
-    return FadeTransition(
-      opacity: fadeAnimation,
-      child: SlideTransition(
-        position: slideAnimation,
-        child: Container(
-          height: heroHeight,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF0A0E27), Color(0xFF1A1F3A), Color(0xFF2D3561)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Stack(
-            children: [
-              ...List.generate(30, (index) => _buildEnhancedParticle(index)),
-              ...List.generate(5, (index) => _buildFloatingShape(index)),
-              Center(
-                child: AnimatedBuilder(
-                  animation: floatingAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, floatingAnimation.value),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Hero(
-                            tag: 'profile_avatar',
-                            child: Container(
-                              padding: EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF00D4FF),
-                                    Color(0xFF0099CC),
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Color(0xFF00D4FF).withOpacity(0.3),
-                                    blurRadius: 20,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              child: CircleAvatar(
-                                radius: avatarSize,
-                                backgroundColor: Color(0xFF1A1F3A),
-                                child: Icon(
-                                  Icons.person,
-                                  size: avatarSize * 0.8,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 30),
-                          ShaderMask(
-                            shaderCallback:
-                                (bounds) => LinearGradient(
-                                  colors: [
-                                    Color(0xFF00D4FF),
-                                    Color(0xFF0099CC),
-                                  ],
-                                ).createShader(bounds),
-                            child: Text(
-                              'Farooq Sarwar',
-                              style: TextStyle(
-                                fontSize: titleSize,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: 1.2,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Flutter & React Native Developer',
-                            style: TextStyle(
-                              fontSize: subtitleSize,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w300,
-                              letterSpacing: 0.5,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          if (!isMobile) ...[
-                            SizedBox(height: 8),
-                            Text(
-                              'Crafting innovative solutions with cutting-edge technology',
-                              style: TextStyle(
-                                fontSize: subtitleSize * 0.7,
-                                color: Colors.white54,
-                                fontStyle: FontStyle.italic,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                          SizedBox(height: 40),
-// Fixed responsive button section
-                          isMobile
-                              ? Column(
-                            children: [
-                              // Mobile: Stack buttons vertically
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () async {
-                                    HapticFeedback.mediumImpact();
+    return Container(
+      width: double.infinity,
+      constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height * 0.92),
+      padding: EdgeInsets.fromLTRB(px, isMobile ? 100 : 140, px, isMobile ? 60 : 80),
+      child: Stack(children: [
+        // Glow blobs
+        Positioned(top: -100, right: -100,
+          child: _GlowBlob(color: AppColors.accent.withOpacity(0.055), size: 500)),
+        Positioned(bottom: -80, left: -80,
+          child: _GlowBlob(color: AppColors.accentPurple.withOpacity(0.065), size: 450)),
+        // Content
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // Badge row
+          _fade(0, Row(children: [
+            _AvailabilityBadge(),
+            const SizedBox(width: 12),
+            _ResponseBadge(),
+          ])),
+          const SizedBox(height: 32),
 
-                                    const githubUrl = 'https://github.com/farooqsarwar';
-
-                                    try {
-                                      if (await canLaunchUrl(Uri.parse(githubUrl))) {
-                                        await launchUrl(
-                                          Uri.parse(githubUrl),
-                                          mode: LaunchMode.externalApplication,
-                                        );
-                                      } else {
-                                        throw Exception('Could not launch GitHub URL');
-                                      }
-                                    } catch (e) {
-                                      print('Error opening GitHub: $e');
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Unable to open GitHub. Please try again.'),
-                                          backgroundColor: Colors.red,
-                                          duration: Duration(seconds: 3),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF00D4FF),
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    elevation: 8,
-                                    shadowColor: Color(0xFF00D4FF).withOpacity(0.3),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'All Projects',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      SizedBox(width: 8),
-                                      Icon(Icons.open_in_new, size: 18),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton(
-                                  onPressed: () => GoogleDriveResumeDownload.downloadResume(context),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    side: BorderSide(color: Colors.white30),
-                                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.download, size: 18),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Resume',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                              : Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 16,
-                            children: [
-                              // Desktop/Tablet: Side by side with wrap
-                              ElevatedButton(
-                                onPressed: () async {
-                                  HapticFeedback.mediumImpact();
-
-                                  const githubUrl = 'https://github.com/farooqsarwar';
-
-                                  try {
-                                    if (await canLaunchUrl(Uri.parse(githubUrl))) {
-                                      await launchUrl(
-                                        Uri.parse(githubUrl),
-                                        mode: LaunchMode.externalApplication,
-                                      );
-                                    } else {
-                                      throw Exception('Could not launch GitHub URL');
-                                    }
-                                  } catch (e) {
-                                    print('Error opening GitHub: $e');
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Unable to open GitHub. Please try again.'),
-                                        backgroundColor: Colors.red,
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF00D4FF),
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: isTablet ? 24 : 32,
-                                    vertical: isTablet ? 12 : 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  elevation: 8,
-                                  shadowColor: Color(0xFF00D4FF).withOpacity(0.3),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'View All Projects',
-                                      style: TextStyle(
-                                        fontSize: isTablet ? 15 : 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Icon(
-                                      Icons.open_in_new,
-                                      size: isTablet ? 18 : 20,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              OutlinedButton(
-                                onPressed: () => GoogleDriveResumeDownload.downloadResume(context),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  side: BorderSide(color: Colors.white30),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: isTablet ? 24 : 28,
-                                    vertical: isTablet ? 12 : 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.download,
-                                      size: isTablet ? 16 : 18,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Resume',
-                                      style: TextStyle(
-                                        fontSize: isTablet ? 15 : 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+          // Title
+          _fade(1, RichText(
+            text: TextSpan(
+              style: GoogleFonts.syne(
+                fontSize: isMobile ? 38 : 68,
+                fontWeight: FontWeight.w800,
+                height: 1.04,
+                letterSpacing: isMobile ? -1.5 : -2.5,
+                color: AppColors.textPrimary,
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEnhancedParticle(int index) {
-    final random = (index * 17) % 100;
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 1500 + (index * 50)),
-      builder: (context, value, child) {
-        return Positioned(
-          left:
-              (random * screenWidth / 100) +
-              (value * 30 * (index % 2 == 0 ? 1 : -1)),
-          top: (index % 8) * 80.0 + (value * 40),
-          child: Opacity(
-            opacity: 0.1 + (value * 0.3),
-            child: Container(
-              width: 3 + (index % 3),
-              height: 3 + (index % 3),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    [
-                      Color(0xFF00D4FF),
-                      Color(0xFF0099CC),
-                      Color(0xFF6C63FF),
-                    ][index % 3],
-                    [
-                      Color(0xFF00D4FF),
-                      Color(0xFF0099CC),
-                      Color(0xFF6C63FF),
-                    ][index % 3].withOpacity(0.7),
-                  ],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: [
-                      Color(0xFF00D4FF),
-                      Color(0xFF0099CC),
-                      Color(0xFF6C63FF),
-                    ][index % 3].withOpacity(0.3),
-                    blurRadius: 4,
+              children: [
+                TextSpan(
+                  text: '${AppStrings.tagline}\n',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w300,
+                    fontSize: isMobile ? 22 : 34,
                   ),
-                ],
-              ),
+                ),
+                const TextSpan(text: 'Farooq Sarwar'),
+                const TextSpan(text: '.', style: TextStyle(color: AppColors.accent)),
+                TextSpan(
+                  text: '\n${AppStrings.role}',
+                  style: GoogleFonts.syne(
+                    fontSize: isMobile ? 18 : 28,
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
             ),
-          ),
-        );
-      },
-    );
-  }
+          )),
+          const SizedBox(height: 28),
 
-  Widget _buildFloatingShape(int index) {
-    final shapes = [
-      Icons.hexagon,
-      Icons.circle,
-      Icons.square,
-      Icons.panorama_wide_angle_sharp,
-      Icons.star,
-    ];
-    return AnimatedBuilder(
-      animation: floatingAnimation,
-      builder: (context, child) {
-        return Positioned(
-          left:
-              (index * screenWidth / 6) +
-              (floatingAnimation.value * (index % 2 == 0 ? 1 : -1)),
-          top: 100.0 + (index * 100.0) + (floatingAnimation.value * 2),
-          child: Opacity(
-            opacity: 0.05,
-            child: Icon(
-              shapes[index % shapes.length],
-              size: 40 + (index * 10),
-              color: Color(0xFF00D4FF),
+          // Sub
+          _fade(2, ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 580),
+            child: Text(AppStrings.heroSub,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w300, height: 1.85, color: AppColors.textMuted)),
+          )),
+          const SizedBox(height: 16),
+
+          // Language / location chips
+          _fade(2, Wrap(spacing: 10, runSpacing: 8, children: [
+            _InfoChip(icon: '📍', label: 'Pakistan'),
+            _InfoChip(icon: '🗣️', label: AppStrings.languages),
+            _InfoChip(icon: '⚡', label: AppStrings.responseTime),
+          ])),
+          const SizedBox(height: 40),
+
+          // Buttons
+          _fade(3, Wrap(spacing: 14, runSpacing: 12, children: [
+            PrimaryButton(
+              label: 'View My Work',
+              onTap: widget.onViewWork,
+              trailing: const Icon(Icons.arrow_forward, size: 16, color: AppColors.bgPrimary),
             ),
-          ),
-        );
-      },
+            PrimaryButton(
+              label: 'Hire on Fiverr',
+              bgColor: AppColors.fiverr,
+              textColor: Colors.white,
+              glowColor: AppColors.fiverr,
+              onTap: () => launchUrl(Uri.parse(AppStrings.fiverrGigUrl), mode: LaunchMode.externalApplication),
+            ),
+            GhostButton(label: 'Get in Touch', onTap: widget.onContact),
+          ])),
+          const SizedBox(height: 64),
+
+          // Stats
+          _fade(4, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(height: 1, color: AppColors.border),
+            const SizedBox(height: 36),
+            Wrap(spacing: 52, runSpacing: 24, children: const [
+              StatItem(value: '3+',   label: 'Years Experience'),
+              StatItem(value: '50+',  label: 'Projects Delivered'),
+              StatItem(value: '5.0★', label: 'Fiverr Rating'),
+              StatItem(value: '1hr',  label: 'Avg. Response'),
+            ]),
+          ])),
+        ]),
+      ]),
     );
   }
+}
+
+class _AvailabilityBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(100),
+      border: Border.all(color: AppColors.border),
+      color: AppColors.surface,
+    ),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      _BlinkDot(),
+      const SizedBox(width: 8),
+      const Text('AVAILABLE FOR WORK',
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.8, color: AppColors.accent)),
+    ]),
+  );
+}
+
+class _ResponseBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(100),
+      border: Border.all(color: AppColors.fiverr.withOpacity(0.3)),
+      color: AppColors.fiverr.withOpacity(0.08),
+    ),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(width: 7, height: 7,
+        decoration: const BoxDecoration(color: AppColors.fiverr, shape: BoxShape.circle)),
+      const SizedBox(width: 7),
+      const Text('ONLINE ON FIVERR',
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.5, color: AppColors.fiverr)),
+    ]),
+  );
+}
+
+class _InfoChip extends StatelessWidget {
+  final String icon; final String label;
+  const _InfoChip({required this.icon, required this.label});
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: AppColors.border),
+      color: AppColors.surface,
+    ),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      Text(icon, style: const TextStyle(fontSize: 13)),
+      const SizedBox(width: 6),
+      Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+    ]),
+  );
+}
+
+class _BlinkDot extends StatefulWidget {
+  @override State<_BlinkDot> createState() => _BlinkDotState();
+}
+class _BlinkDotState extends State<_BlinkDot> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  @override void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))..repeat(reverse: true);
+  }
+  @override void dispose() { _ctrl.dispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+    opacity: Tween<double>(begin: 0.3, end: 1.0).animate(_ctrl),
+    child: Container(width: 7, height: 7,
+      decoration: BoxDecoration(color: AppColors.fiverr, shape: BoxShape.circle,
+        boxShadow: [BoxShadow(color: AppColors.fiverr.withOpacity(0.6), blurRadius: 6)])),
+  );
+}
+
+class _GlowBlob extends StatefulWidget {
+  final Color color; final double size;
+  const _GlowBlob({required this.color, required this.size});
+  @override State<_GlowBlob> createState() => _GlowBlobState();
+}
+class _GlowBlobState extends State<_GlowBlob> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  @override void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 7))..repeat(reverse: true);
+  }
+  @override void dispose() { _ctrl.dispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _ctrl,
+    builder: (_, __) => Opacity(
+      opacity: 0.6 + _ctrl.value * 0.4,
+      child: Container(width: widget.size, height: widget.size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: [widget.color, Colors.transparent]),
+        )),
+    ),
+  );
 }

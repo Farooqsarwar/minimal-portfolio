@@ -1,513 +1,476 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_text_styles.dart';
 
-Widget buildSectionTitle(String title, bool isMobile, bool isTablet) {
-  return Column(
-    children: [
-      Text(
-        title,
-        style: TextStyle(
-          fontSize: isMobile ? 28 : (isTablet ? 34 : 40),
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
-        textAlign: TextAlign.center,
-      ),
-      SizedBox(height: 16),
-      Container(
-        width: 80,
-        height: 4,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF00D4FF), Color(0xFF0099CC)],
-          ),
-          borderRadius: BorderRadius.circular(2),
-        ),
-      ),
-      SizedBox(height: 8),
-    ],
-  );
-}
+// ─── Section Label + Title ────────────────────────────────
+class SectionHeader extends StatelessWidget {
+  final String label;
+  final String title;
+  final String? accentWord;
 
-Widget buildEnhancedSkillCard(String skill, double progress, Color color, IconData icon, bool isMobile, bool isTablet) {
-  return TweenAnimationBuilder<double>(
-    tween: Tween(begin: 0, end: progress),
-    duration: Duration(milliseconds: 2000),
-    curve: Curves.easeOutCubic,
-    builder: (context, value, child) {
-      return Container(
-        padding: EdgeInsets.all(isMobile ? 16 : (isTablet ? 18 : 20)),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.white.withOpacity(0.12),
-              Colors.white.withOpacity(0.06),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.15),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  const SectionHeader({
+    super.key,
+    required this.label,
+    required this.title,
+    this.accentWord,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label row
+        Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: isMobile ? 20 : 24,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Text(
-                  skill,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isMobile ? 16 : (isTablet ? 17 : 18),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Proficiency',
-                      style: TextStyle(
-                        color: Colors.white60,
-                        fontSize: isMobile ? 12 : 13,
-                      ),
-                    ),
-                    Text(
-                      '${(value * 100).toInt()}%',
-                      style: TextStyle(
-                        color: color,
-                        fontSize: isMobile ? 14 : 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Stack(
-                    children: [
-                      FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: value,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [color, color.withOpacity(0.7)],
-                            ),
-                            borderRadius: BorderRadius.circular(3),
-                            boxShadow: [
-                              BoxShadow(
-                                color: color.withOpacity(0.3),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            Container(width: 32, height: 1, color: AppColors.accent),
+            const SizedBox(width: 12),
+            Text(label.toUpperCase(), style: AppTextStyles.sectionLabel),
           ],
         ),
-      );
-    },
-  );
+        const SizedBox(height: 16),
+        // Title
+        RichText(
+          text: TextSpan(
+            style: isMobile
+                ? AppTextStyles.sectionTitleMobile
+                : AppTextStyles.sectionTitle,
+            children: _buildTitleSpans(title, accentWord),
+          ),
+        ),
+        const SizedBox(height: 48),
+      ],
+    );
+  }
+
+  List<TextSpan> _buildTitleSpans(String title, String? accentWord) {
+    if (accentWord == null) return [TextSpan(text: title)];
+    final idx = title.indexOf(accentWord);
+    if (idx == -1) return [TextSpan(text: title)];
+    return [
+      TextSpan(text: title.substring(0, idx)),
+      TextSpan(
+        text: accentWord,
+        style: const TextStyle(color: AppColors.accent),
+      ),
+      TextSpan(text: title.substring(idx + accentWord.length)),
+    ];
+  }
 }
 
-Widget buildEnhancedProjectCard(
-    String title,
-    String description,
-    List<String> techStack,
-    Color color,
-    IconData icon,
-    bool isMobile,
-    bool isTablet,
-    int index, {
-      String? githubUrl,
-    }) {
-  return TweenAnimationBuilder<double>(
-    tween: Tween(begin: 0, end: 1),
-    duration: Duration(milliseconds: 800 + (index * 200)),
-    curve: Curves.easeOutCubic,
-    builder: (context, value, child) {
-      return Transform.translate(
-        offset: Offset(0, (1 - value) * 50),
-        child: Opacity(
-          opacity: value,
-          child: Container(
-            padding: EdgeInsets.all(isMobile ? 20 : (isTablet ? 25 : 30)),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.white.withOpacity(0.1),
-                  Colors.white.withOpacity(0.05),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.15),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: Offset(0, 10),
-                ),
+// ─── Primary Button ───────────────────────────────────────
+class PrimaryButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+  final Widget? trailing;
+  final Color bgColor;
+  final Color textColor;
+  final Color? glowColor;
+
+  const PrimaryButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+    this.trailing,
+    this.bgColor = AppColors.accent,
+    this.textColor = AppColors.bgPrimary,
+    this.glowColor,
+  });
+
+  @override
+  State<PrimaryButton> createState() => _PrimaryButtonState();
+}
+
+class _PrimaryButtonState extends State<PrimaryButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final glow = widget.glowColor ?? widget.bgColor;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          decoration: BoxDecoration(
+            color: widget.bgColor,
+            borderRadius: BorderRadius.circular(100),
+            boxShadow: _hovered
+                ? [BoxShadow(color: glow.withOpacity(0.4), blurRadius: 32, spreadRadius: 0)]
+                : [],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.label,
+                  style: AppTextStyles.button.copyWith(color: widget.textColor)),
+              if (widget.trailing != null) ...[
+                const SizedBox(width: 10),
+                widget.trailing!,
               ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Ghost Button ─────────────────────────────────────────
+class GhostButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const GhostButton({super.key, required this.label, required this.onTap});
+
+  @override
+  State<GhostButton> createState() => _GhostButtonState();
+}
+
+class _GhostButtonState extends State<GhostButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: _hovered ? AppColors.accent : AppColors.border,
+              width: 1,
             ),
-            child: isMobile
-                ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.3),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: color, size: 30),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: isMobile ? 18 : (isTablet ? 20 : 22),
+          ),
+          child: Text(
+            widget.label,
+            style: AppTextStyles.button.copyWith(
+              color: _hovered ? AppColors.accent : AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Skill Bar ────────────────────────────────────────────
+class SkillBar extends StatefulWidget {
+  final String name;
+  final double percentage;
+
+  const SkillBar({super.key, required this.name, required this.percentage});
+
+  @override
+  State<SkillBar> createState() => _SkillBarState();
+}
+
+class _SkillBarState extends State<SkillBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) _ctrl.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (widget.percentage * 100).toInt();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(widget.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                  )),
+              Text('$pct%',
+                  style: const TextStyle(
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  description,
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: isMobile ? 14 : (isTablet ? 15 : 16),
-                    height: 1.6,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: techStack.map((tech) => Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: color.withOpacity(0.3)),
-                    ),
-                    child: Text(
-                      tech,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: isMobile ? 11 : 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )).toList(),
-                ),
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
-                      ),
-                      child: IconButton(
-                        onPressed: githubUrl != null
-                            ? () async {
-                          final uri = Uri.parse(githubUrl);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Could not launch GitHub URL')),
-                            );
-                          }
-                          HapticFeedback.lightImpact();
-                        }
-                            : null,
-                        icon: Icon(Icons.code, color: Colors.white70, size: 20),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            )
-                : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
+                    color: AppColors.textMuted,
+                  )),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.bgTertiary,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: AnimatedBuilder(
+              animation: _anim,
+              builder: (_, __) => FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: _anim.value * widget.percentage,
+                child: Container(
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.3),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: color, size: 40),
-                ),
-                SizedBox(width: 30),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isTablet ? 20 : 22,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: isTablet ? 15 : 16,
-                          height: 1.6,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: techStack.map((tech) => Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: color.withOpacity(0.3)),
-                          ),
-                          child: Text(
-                            tech,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        )).toList(),
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        children: [
-                          OutlinedButton(
-                            onPressed: githubUrl != null
-                                ? () async {
-                              final uri = Uri.parse(githubUrl);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri, mode: LaunchMode.externalApplication);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Could not launch GitHub URL')),
-                                );
-                              }
-                              HapticFeedback.lightImpact();
-                            }
-                                : null,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white70,
-                              side: BorderSide(color: Colors.white30),
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.code, size: 18),
-                                SizedBox(width: 8),
-                                Text('Code'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(100),
+                    gradient: const LinearGradient(
+                      colors: [AppColors.accentPurple, AppColors.accent],
+                    ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
+        ],
+      ),
+    );
+  }
 }
 
-Widget buildEducationItem(String title, String content, bool isMobile, bool isTablet) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        title,
-        style: TextStyle(
-          color: Color(0xFF00D4FF),
-          fontSize: isMobile ? 14 : (isTablet ? 15 : 16),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      SizedBox(height: 8),
-      Text(
-        content,
-        style: TextStyle(
-          color: Colors.white70,
-          fontSize: isMobile ? 13 : (isTablet ? 14 : 15),
-          height: 1.6,
-        ),
-      ),
-    ],
-  );
-}
+// ─── Glowing Badge ────────────────────────────────────────
+class GlowBadge extends StatelessWidget {
+  final String text;
+  final Color color;
 
-Widget buildContactField(String label, TextEditingController controller, bool isMobile, bool isTablet, {int maxLines = 1}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: isMobile ? 14 : (isTablet ? 15 : 16),
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      SizedBox(height: 8),
-      TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        style: TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.white.withOpacity(0.08),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Color(0xFF00D4FF)),
-          ),
-          hintText: 'Enter your $label',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-        ),
-      ),
-    ],
-  );
-}
+  const GlowBadge({super.key, required this.text, required this.color});
 
-Widget buildSocialButton(IconData icon, Color color, String label, String url) {
-  return Tooltip(
-    message: label,
-    child: Container(
-      width: 48,
-      height: 48,
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(6),
+        color: color.withOpacity(0.08),
+        border: Border.all(color: color.withOpacity(0.25)),
       ),
-      child: IconButton(
-        onPressed: () async {
-          final uri = Uri.parse(url);
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-          } else {
-            // Context might not be available here, so this is a fallback
-            print('Could not launch $url');
-          }
-          HapticFeedback.lightImpact();
-        },
-        icon: Icon(icon, color: color, size: 20),
-      ),
-    ),
-  );
-}
-
-Widget buildContactInfoItem(IconData icon, String text) {
-  return Row(
-    children: [
-      Icon(icon, color: Color(0xFF00D4FF), size: 18),
-      SizedBox(width: 12),
-      Text(
+      child: Text(
         text,
         style: TextStyle(
-          color: Colors.white70,
-          fontSize: 15,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+          letterSpacing: 0.3,
         ),
       ),
-    ],
-  );
+    );
+  }
 }
 
-double getHorizontalPadding(bool isMobile, bool isTablet) {
-  return isMobile ? 16 : (isTablet ? 24 : 32);
+// ─── Skill Tag ────────────────────────────────────────────
+class SkillTagChip extends StatefulWidget {
+  final String label;
+
+  const SkillTagChip({super.key, required this.label});
+
+  @override
+  State<SkillTagChip> createState() => _SkillTagChipState();
 }
 
-double getVerticalPadding(bool isMobile, bool isTablet) {
-  return isMobile ? 60 : (isTablet ? 80 : 100);
+class _SkillTagChipState extends State<SkillTagChip> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(
+            color: _hovered
+                ? AppColors.accent
+                : AppColors.border,
+          ),
+          color: _hovered
+              ? AppColors.accent.withOpacity(0.05)
+              : AppColors.surface,
+        ),
+        child: Text(
+          widget.label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: _hovered ? AppColors.accent : AppColors.textMuted,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Hover Card ───────────────────────────────────────────
+class HoverCard extends StatefulWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  final Color? borderColor;
+
+  const HoverCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(28),
+    this.borderColor,
+  });
+
+  @override
+  State<HoverCard> createState() => _HoverCardState();
+}
+
+class _HoverCardState extends State<HoverCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: widget.padding,
+        transform: Matrix4.translationValues(0, _hovered ? -4 : 0, 0),
+        decoration: BoxDecoration(
+          color: AppColors.bgSecondary,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _hovered
+                ? (widget.borderColor ?? AppColors.border.withOpacity(2))
+                : AppColors.border,
+          ),
+          boxShadow: _hovered
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    blurRadius: 40,
+                    offset: const Offset(0, 16),
+                  )
+                ]
+              : [],
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+// ─── Animated Stat ────────────────────────────────────────
+class StatItem extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const StatItem({super.key, required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            style: AppTextStyles.statNumber,
+            children: [
+              TextSpan(
+                text: value.replaceAll(RegExp(r'[+★]'), ''),
+              ),
+              TextSpan(
+                text: value.contains('+')
+                    ? '+'
+                    : value.contains('★')
+                        ? '★'
+                        : '',
+                style: const TextStyle(color: AppColors.accent),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(label.toUpperCase(), style: AppTextStyles.statLabel),
+      ],
+    );
+  }
+}
+
+// ─── Contact Link Row ─────────────────────────────────────
+class ContactLinkRow extends StatefulWidget {
+  final String icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const ContactLinkRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  State<ContactLinkRow> createState() => _ContactLinkRowState();
+}
+
+class _ContactLinkRowState extends State<ContactLinkRow> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _hovered ? AppColors.accent : AppColors.border,
+                ),
+                color: AppColors.surface,
+              ),
+              child: Center(child: Text(widget.icon, style: const TextStyle(fontSize: 18))),
+            ),
+            const SizedBox(width: 14),
+            Text(
+              widget.label,
+              style: TextStyle(
+                fontSize: 14,
+                color: _hovered ? AppColors.accent : AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

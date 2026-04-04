@@ -13,12 +13,12 @@ class FooterSection extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      color: AppColors.bgPrimary,
       padding: EdgeInsets.symmetric(
         horizontal: isMobile ? 24 : 60,
         vertical: 36,
       ),
       decoration: const BoxDecoration(
+        color: AppColors.bgPrimary,
         border: Border(
           top: BorderSide(color: AppColors.border, width: 1),
         ),
@@ -60,13 +60,13 @@ class _Logo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
-      text:  TextSpan(
+      text: TextSpan(
         style: GoogleFonts.syne(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        children: [
+        children: const [
           TextSpan(text: 'Farooq'),
           TextSpan(text: '.', style: TextStyle(color: AppColors.accent)),
         ],

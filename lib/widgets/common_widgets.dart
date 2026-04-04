@@ -210,12 +210,15 @@ class _SkillBarState extends State<SkillBar>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(widget.name,
+              Flexible(
+                child: Text(widget.name,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
-                  )),
+                  ),
+                  overflow: TextOverflow.ellipsis)),
+              const SizedBox(width: 8),
               Text('$pct%',
                   style: const TextStyle(
                     fontSize: 13,
@@ -461,13 +464,14 @@ class _ContactLinkRowState extends State<ContactLinkRow> {
               child: Center(child: Text(widget.icon, style: const TextStyle(fontSize: 18))),
             ),
             const SizedBox(width: 14),
-            Text(
+            Flexible(child: Text(
               widget.label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: _hovered ? AppColors.accent : AppColors.textPrimary,
               ),
-            ),
+              overflow: TextOverflow.ellipsis,
+            )),
           ],
         ),
       ),

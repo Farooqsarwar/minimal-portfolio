@@ -55,7 +55,9 @@ class _PortfolioNavBarState extends State<PortfolioNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.of(context).size.width < 900;
+    final w = MediaQuery.of(context).size.width;
+    final isMobile = w < 900;
+    final isTablet = w < 1200;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -104,15 +106,31 @@ class _PortfolioNavBarState extends State<PortfolioNavBar> {
                 AppStrings.navSkills,
                 AppStrings.navFiverr,
                 AppStrings.navContact,
-              ].map((label) => _NavLink(label: label, onTap: () => _scrollTo(label.toLowerCase()))).toList(),
+              ].map((label) => _NavLink(
+                label: label,
+                compact: isTablet,
+                onTap: () => _scrollTo(label.toLowerCase()))).toList(),
             ),
-            // CTA
-            PrimaryButton(
-              label: AppStrings.navHireBtn,
-              bgColor: Colors.transparent,
-              textColor: AppColors.accent,
-              onTap: () => launchUrl(Uri.parse(AppStrings.fiverrUrl)),
-            ),
+            // CTA - hide on tablet to save space
+            if (!isTablet)
+              PrimaryButton(
+                label: AppStrings.navHireBtn,
+                bgColor: Colors.transparent,
+                textColor: AppColors.accent,
+                onTap: () => launchUrl(Uri.parse(AppStrings.fiverrUrl)),
+              )
+            else
+              GestureDetector(
+                onTap: () => launchUrl(Uri.parse(AppStrings.fiverrUrl)),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(100),
+                    border: Border.all(color: AppColors.accent),
+                  ),
+                  child: const Text('Fiverr', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                ),
+              ),
           ] else
             Builder(
               builder: (ctx) => GestureDetector(
@@ -146,8 +164,9 @@ class _PortfolioNavBarState extends State<PortfolioNavBar> {
 class _NavLink extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
+  final bool compact;
 
-  const _NavLink({required this.label, required this.onTap});
+  const _NavLink({required this.label, required this.onTap, this.compact = false});
 
   @override
   State<_NavLink> createState() => _NavLinkState();
@@ -165,10 +184,11 @@ class _NavLinkState extends State<_NavLink> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: widget.compact ? 10 : 16, vertical: 8),
           child: AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 200),
             style: AppTextStyles.navLink.copyWith(
+              fontSize: widget.compact ? 11 : 13,
               color: _hovered ? AppColors.textPrimary : AppColors.textMuted,
             ),
             child: Text(widget.label.toUpperCase()),

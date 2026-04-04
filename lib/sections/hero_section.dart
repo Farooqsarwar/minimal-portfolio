@@ -56,9 +56,8 @@ class _HeroSectionState extends State<HeroSection> with TickerProviderStateMixin
         // Content
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // Badge row
-          _fade(0, Row(children: [
+          _fade(0, Wrap(spacing: 10, runSpacing: 8, children: [
             _AvailabilityBadge(),
-            const SizedBox(width: 12),
             _ResponseBadge(),
           ])),
           const SizedBox(height: 32),
@@ -104,14 +103,7 @@ class _HeroSectionState extends State<HeroSection> with TickerProviderStateMixin
             child: Text(AppStrings.heroSub,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w300, height: 1.85, color: AppColors.textMuted)),
           )),
-          const SizedBox(height: 16),
 
-          // Language / location chips
-          _fade(2, Wrap(spacing: 10, runSpacing: 8, children: [
-            _InfoChip(icon: '📍', label: 'Pakistan'),
-            _InfoChip(icon: '🗣️', label: AppStrings.languages),
-            _InfoChip(icon: '⚡', label: AppStrings.responseTime),
-          ])),
           const SizedBox(height: 40),
 
           // Buttons

@@ -32,10 +32,6 @@ class FiverrSection extends StatelessWidget {
           child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Column(children: [
-              // Fiverr profile badge
-              _FiverrProfileBadge(),
-              const SizedBox(height: 28),
-
               // Title
               RichText(
                 textAlign: TextAlign.center,
@@ -69,11 +65,6 @@ class FiverrSection extends StatelessWidget {
                     child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: _GigCard(gig: g)))).toList()),
               const SizedBox(height: 40),
-
-              // Stats row
-              _StatsRow(),
-              const SizedBox(height: 40),
-
               // CTA
               PrimaryButton(
                 label: 'View All Gigs on Fiverr →',
@@ -94,38 +85,41 @@ class FiverrSection extends StatelessWidget {
 class _FiverrProfileBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(14),
       color: AppColors.fiverr.withOpacity(0.07),
       border: Border.all(color: AppColors.fiverr.withOpacity(0.25)),
     ),
-    child: Row(mainAxisSize: MainAxisSize.min, children: [
-      // Avatar dot
-      Container(
-        width: 36, height: 36,
-        decoration: const BoxDecoration(color: AppColors.fiverr, shape: BoxShape.circle),
-        child: const Center(child: Text('f', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white))),
-      ),
-      const SizedBox(width: 12),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        const Text('farooqsarwar227',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.fiverr)),
-        Row(children: [
-          const Text('★★★★★', style: TextStyle(color: AppColors.accentAmber, fontSize: 12, letterSpacing: 1)),
-          const SizedBox(width: 6),
-          const Text(AppStrings.fiverrRating,
-            style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+    child: Wrap(
+      spacing: 10, runSpacing: 6,
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 32, height: 32,
+            decoration: const BoxDecoration(color: AppColors.fiverr, shape: BoxShape.circle),
+            child: const Center(child: Text('f', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white))),
+          ),
+          const SizedBox(width: 10),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            const Text('farooqsarwar227',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.fiverr)),
+            Wrap(spacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+              const Text('★★★★★', style: TextStyle(color: AppColors.accentAmber, fontSize: 11, letterSpacing: 1)),
+              const Text(AppStrings.fiverrRating,
+                style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+            ]),
+          ]),
         ]),
-      ]),
-      const SizedBox(width: 16),
-      Container(
-        width: 8, height: 8,
-        decoration: const BoxDecoration(color: AppColors.fiverr, shape: BoxShape.circle),
-      ),
-      const SizedBox(width: 5),
-      const Text('Online', style: TextStyle(fontSize: 11, color: AppColors.fiverr, fontWeight: FontWeight.w600)),
-    ]),
+        Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppColors.fiverr, shape: BoxShape.circle)),
+          const SizedBox(width: 4),
+          const Text('Online', style: TextStyle(fontSize: 11, color: AppColors.fiverr, fontWeight: FontWeight.w600)),
+        ]),
+      ],
+    ),
   );
 }
 
@@ -200,8 +194,9 @@ class _StatsRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Wrap(
+        spacing: 20, runSpacing: 16,
+        alignment: WrapAlignment.spaceAround,
         children: stats.map((s) => Column(children: [
           Text(s['icon']!, style: const TextStyle(fontSize: 20)),
           const SizedBox(height: 6),

@@ -185,21 +185,19 @@ final List<ProjectModel> projects = [
     gradientColors: [Color(0xFF0A0A1A), Color(0xFF1A1040), Color(0xFF3B1FA8)],
     techTags: ['Flutter', 'AI/ML', 'Python API', 'Firebase'],
     isFeatured: true,
-    cost: '\$400–\$600',
-    duration: '7–30 days',
-    githubUrl: 'https://github.com/Farooqsarwar/lung-scan-Ai',
+    githubUrl: 'https://github.com/Farooqsarwar/Lungscan-AI',
   ),
 
   // ── GitHub Projects ──
   ProjectModel(
     title: 'Auction App',
-    category: 'Flutter · Firebase · Bidding System',
+    category: 'Flutter · supabse · Bidding System',
     description:
     'Full-featured auction platform where users can list items, place bids, '
         'track auctions in real-time, and manage their auction history. Built with '
-        'Flutter and Firebase for seamless bidding experience.',
+        'Flutter and Supabase for seamless bidding experience.',
     gradientColors: [Color(0xFF1A0A2A), Color(0xFF3D2A5A), Color(0xFF7C3AED)],
-    techTags: ['Flutter', 'Firebase', 'Real-time DB', 'Dart'],
+    techTags: ['Flutter', 'Supabase', 'Real-time chat', 'Dart'],
     githubUrl: 'https://github.com/Farooqsarwar/fyp',
   ),
   ProjectModel(

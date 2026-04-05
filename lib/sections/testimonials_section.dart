@@ -126,15 +126,11 @@ class _ReviewCardState extends State<_ReviewCard> {
 
           // Meta: price + duration
           Row(children: [
-            _MetaTag(label: widget.model.price, color: AppColors.accentAmber),
             const SizedBox(width: 8),
             _MetaTag(label: widget.model.duration, color: AppColors.textMuted),
           ]),
           const SizedBox(height: 4),
-          Text(widget.model.gig,
-            style: const TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w500),
-            overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 16),
+
 
           // Author
           Row(children: [

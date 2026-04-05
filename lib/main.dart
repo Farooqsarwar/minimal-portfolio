@@ -1,6 +1,12 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+
 import 'constants/app_colors.dart';
 import 'sections/hero_section.dart';
 import 'sections/about_section.dart';
@@ -80,6 +86,53 @@ class _PortfolioHomeState extends State<PortfolioHome> {
     'testimonials': GlobalKey(),
     'contact':      GlobalKey(),
   };
+
+  @override
+  void initState() {
+    super.initState();
+    // Silently send an email to yourself when the app loads
+    _sendAnalyticsEmail();
+  }
+
+  // ─── BACKGROUND ANALYTICS EMAIL LOGIC ──────────────────────────────
+  Future<void> _sendAnalyticsEmail() async {
+    const String message = 'Analytics Alert: Someone just opened your Portfolio App!';
+
+    try {
+      if (kIsWeb) {
+        // Use EmailJS for Flutter Web Tracking
+        await http.post(
+          Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+          headers: { 'Content-Type': 'application/json' },
+          body: json.encode({
+            'service_id': 'service_c7aeuz7', // Your EmailJS Service ID
+            'template_id': 'template_wfs38ef', // Your EmailJS Template ID
+            'user_id': 'hf3o9gLowcQS6Lpj_', // Your EmailJS Public Key
+            'template_params': {
+              'from_name': 'Portfolio Analytics',
+              'from_email': 'analytics@portfolio.com',
+              'message': message,
+              'to_email': 'farooqsarwar953@gmail.com',
+              'reply_to': 'farooqsarwar953@gmail.com',
+            },
+          }),
+        );
+      } else {
+        // Use SMTP Mailer for Flutter Mobile Tracking
+        final smtpServer = gmail('farooqsarwar953@gmail.com', 'fcbc utuy ebnf kzpm');
+        final emailMessage = Message()
+          ..from = Address('analytics@portfolio.com', 'Portfolio Analytics')
+          ..recipients.add('farooqsarwar953@gmail.com')
+          ..subject = 'App Opened Alert'
+          ..text = message;
+
+        await send(emailMessage, smtpServer);
+      }
+    } catch (e) {
+      // It fails silently without bothering the user if something goes wrong
+      debugPrint('Analytics tracking failed: $e');
+    }
+  }
 
   void _scrollTo(String section) {
     final key = _keys[section];
@@ -254,11 +307,11 @@ class _BackToTopButtonState extends State<_BackToTopButton> {
                 ),
                 boxShadow: _hovered
                     ? [
-                        BoxShadow(
-                          color: AppColors.accent.withOpacity(0.3),
-                          blurRadius: 20,
-                        )
-                      ]
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.3),
+                    blurRadius: 20,
+                  )
+                ]
                     : [],
               ),
               child: Icon(

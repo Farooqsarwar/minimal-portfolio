@@ -68,9 +68,7 @@ class AboutSection extends StatelessWidget {
       )),
       // Floating cards
       Positioned(bottom: -20, left: -36,
-        child: _FloatingCard(icon: '🚀', title: '50+ Projects', subtitle: 'Delivered')),
-      Positioned(top: -16, right: -32,
-        child: _FloatingCard(icon: '✅', title: 'Level 1 Seller', subtitle: 'Fiverr 5.0 ★')),
+        child: _FloatingCard(icon: '', title: '10+ Projects', subtitle: 'Delivered')),
     ])));
   }
 

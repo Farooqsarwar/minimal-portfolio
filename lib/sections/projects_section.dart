@@ -106,9 +106,9 @@ class _PlayStoreBannerState extends State<_PlayStoreBanner> {
                     const Text('🏪', style: TextStyle(fontSize: 13)),
                     const SizedBox(width: 6),
                     Flexible(child: Text('Google Play Store — FocuslabsLLC',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                        color: AppColors.serviceGreen),
-                      overflow: TextOverflow.ellipsis)),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                            color: AppColors.serviceGreen),
+                        overflow: TextOverflow.ellipsis)),
                   ]),
                 ),
               ),
@@ -118,17 +118,17 @@ class _PlayStoreBannerState extends State<_PlayStoreBanner> {
             const SizedBox(height: 16),
             if (isMobile)
               Wrap(spacing: 8, runSpacing: 8,
-                children: playStoreApps.map((a) => SizedBox(
-                  width: (w - 48 - 32) / 2, // 2 per row on mobile
-                  child: _PlayStoreAppChip(app: a),
-                )).toList())
+                  children: playStoreApps.map((a) => SizedBox(
+                    width: (w - 48 - 32) / 2, // 2 per row on mobile
+                    child: _PlayStoreAppChip(app: a),
+                  )).toList())
             else
               Row(children: playStoreApps.map((a) => Expanded(
-                child: Padding(padding: const EdgeInsets.only(right: 8), child: _PlayStoreAppChip(app: a))
+                  child: Padding(padding: const EdgeInsets.only(right: 8), child: _PlayStoreAppChip(app: a))
               )).toList()),
             const SizedBox(height: 12),
             Text('5 apps published under FocuslabsLLC',
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w300)),
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w300)),
           ]),
         ),
       ),
@@ -151,9 +151,9 @@ class _PlayStoreAppChip extends StatelessWidget {
       Text(app.emoji, style: const TextStyle(fontSize: 20)),
       const SizedBox(height: 4),
       Text(app.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        overflow: TextOverflow.ellipsis),
+          overflow: TextOverflow.ellipsis),
       Text(app.shortDesc, style: const TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w300),
-        overflow: TextOverflow.ellipsis),
+          overflow: TextOverflow.ellipsis),
     ]),
   );
 }
@@ -192,26 +192,15 @@ class _ProjectCardState extends State<_ProjectCard> {
               child: Stack(children: [
                 Positioned.fill(child: DecoratedBox(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft, end: Alignment.bottomRight,
-                      colors: widget.model.gradientColors,
-                    )),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                        colors: widget.model.gradientColors,
+                      )),
                 )),
-                if (widget.model.isFeatured)
-                  Positioned(top: 12, right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppColors.fiverr,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: const Text('FIVERR PROJECT',
-                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1)),
-                    )),
                 Center(child: Text(
                   widget.model.title.substring(0, 2).toUpperCase(),
                   style: GoogleFonts.syne(fontSize: 48, fontWeight: FontWeight.w800,
-                    color: Colors.white.withOpacity(0.12), letterSpacing: -3),
+                      color: Colors.white.withOpacity(0.12), letterSpacing: -3),
                 )),
               ]),
             ),
@@ -223,27 +212,27 @@ class _ProjectCardState extends State<_ProjectCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(widget.model.category,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
-                      letterSpacing: 1.5, color: AppColors.accent)),
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5, color: AppColors.accent)),
                   const SizedBox(height: 6),
                   Text(widget.model.title,
-                    style: GoogleFonts.syne(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                      style: GoogleFonts.syne(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                   const SizedBox(height: 6),
                   Text(widget.model.description,
-                    style: const TextStyle(fontSize: 12, height: 1.6, color: AppColors.textMuted, fontWeight: FontWeight.w300),
-                    maxLines: 3, overflow: TextOverflow.ellipsis),
+                      style: const TextStyle(fontSize: 12, height: 1.6, color: AppColors.textMuted, fontWeight: FontWeight.w300),
+                      maxLines: 3, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 10),
                   // Tech tags
                   Wrap(spacing: 5, runSpacing: 5,
-                    children: widget.model.techTags.map((t) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Text(t, style: const TextStyle(fontSize: 9, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
-                    )).toList()),
+                      children: widget.model.techTags.map((t) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Text(t, style: const TextStyle(fontSize: 9, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+                      )).toList()),
                   // Cost + duration
                   if (widget.model.cost != null) ...[
                     const SizedBox(height: 10),
@@ -279,14 +268,14 @@ class _MetaChip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
     decoration: BoxDecoration(
-      color: AppColors.fiverr.withOpacity(0.07),
+      color: AppColors.accent.withOpacity(0.07),
       borderRadius: BorderRadius.circular(6),
-      border: Border.all(color: AppColors.fiverr.withOpacity(0.2)),
+      border: Border.all(color: AppColors.accent.withOpacity(0.2)),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
       Text(icon, style: const TextStyle(fontSize: 10)),
       const SizedBox(width: 4),
-      Text(text, style: const TextStyle(fontSize: 10, color: AppColors.fiverr, fontWeight: FontWeight.w600)),
+      Text(text, style: const TextStyle(fontSize: 10, color: AppColors.accent, fontWeight: FontWeight.w600)),
     ]),
   );
 }
@@ -309,7 +298,7 @@ class _ProjLinkState extends State<_ProjLink> {
         Text(widget.icon, style: const TextStyle(fontSize: 12)),
         const SizedBox(width: 5),
         Text(widget.label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-          color: _hovered ? AppColors.accent : AppColors.textMuted)),
+            color: _hovered ? AppColors.accent : AppColors.textMuted)),
       ]),
     ),
   );

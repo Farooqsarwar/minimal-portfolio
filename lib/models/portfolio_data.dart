@@ -11,7 +11,6 @@ class ServiceModel {
   final String description;
   final List<String> tags;
   final Color accentColor;
-  final String startingFrom;
 
   const ServiceModel({
     required this.icon,
@@ -19,7 +18,6 @@ class ServiceModel {
     required this.description,
     required this.tags,
     required this.accentColor,
-    required this.startingFrom,
   });
 }
 
@@ -126,7 +124,6 @@ final List<ServiceModel> services = [
         'Clean architecture, smooth 60fps animations, and pixel-perfect UI from a single codebase.',
     tags: ['Flutter', 'React Native', 'iOS & Android'],
     accentColor: AppColors.serviceCyan,
-    startingFrom: '\$100',
   ),
   ServiceModel(
     icon: '🤖',
@@ -136,7 +133,6 @@ final List<ServiceModel> services = [
         'Real-time inference, smart features, and seamless frontend-backend communication.',
     tags: ['AI/ML Integration', 'TensorFlow Lite', 'Python API'],
     accentColor: AppColors.accentPurple,
-    startingFrom: '\$100',
   ),
   ServiceModel(
     icon: '🌐',
@@ -146,7 +142,6 @@ final List<ServiceModel> services = [
         'Firebase Hosting or GitHub Pages with full cross-device compatibility.',
     tags: ['Flutter Web', 'PWA', 'Firebase Hosting'],
     accentColor: AppColors.serviceGreen,
-    startingFrom: '\$80',
   ),
   ServiceModel(
     icon: '🎨',
@@ -156,7 +151,6 @@ final List<ServiceModel> services = [
         'or React Native code with precise animations and proper theming.',
     tags: ['Figma to Code', 'Pixel Perfect', 'Animations'],
     accentColor: AppColors.servicePink,
-    startingFrom: '\$50',
   ),
   ServiceModel(
     icon: '🔥',
@@ -166,7 +160,6 @@ final List<ServiceModel> services = [
         'Cloud Storage, and Crashlytics. REST & GraphQL API integration with Dio/http.',
     tags: ['Firebase', 'REST APIs', 'GraphQL'],
     accentColor: AppColors.serviceAmber,
-    startingFrom: '\$60',
   ),
   ServiceModel(
     icon: '🛠️',
@@ -176,7 +169,6 @@ final List<ServiceModel> services = [
         'bottlenecks, and refactor to industry-standard clean architecture patterns.',
     tags: ['Performance', 'Clean Code', 'Debugging'],
     accentColor: AppColors.serviceTeal,
-    startingFrom: '\$30',
   ),
 ];
 
@@ -198,22 +190,6 @@ final List<ProjectModel> projects = [
     githubUrl: 'https://github.com/Farooqsarwar/lung-scan-Ai',
   ),
 
-  // ── Play Store Apps (FocuslabsLLC) ──
-  ProjectModel(
-    title: 'Steganography App',
-    category: 'Flutter · Flask API · Security',
-    description:
-    'Advanced steganography application to securely hide images inside images '
-        'and embed secret text within images. Supports encoding and decoding with '
-        'a clean user interface and a powerful Flask backend for secure processing.',
-    gradientColors: [
-      Color(0xFF0C1A0C),
-      Color(0xFF1A4020),
-      Color(0xFF1DBF73)
-    ],
-    techTags: ['Flutter', 'Flask', 'REST API', 'GetX', 'Image Processing'],
-    playStoreUrl: 'https://play.google.com/store/apps/developer?id=FocuslabsLLC',
-  ),
   // ── GitHub Projects ──
   ProjectModel(
     title: 'Auction App',
@@ -257,12 +233,12 @@ final List<ProjectModel> projects = [
     githubUrl: 'https://github.com/Farooqsarwar/V-chat',
   ),
   ProjectModel(
-    title: 'Cryptology App',
-    category: 'Flutter · Encryption · Security',
+    title: 'Steganography App',
+    category: 'Flutter · Flask API · Security',
     description:
-    'Comprehensive cryptography app featuring various encryption algorithms, '
-        'decryption tools, and educational content about cryptographic methods. '
-        'Built with Flutter for cross-platform support.',
+    'Advanced steganography application to securely hide images inside images '
+        'and embed secret text within images. Supports encoding and decoding with '
+        'a clean user interface and a powerful Flask backend for secure processing.',
     gradientColors: [Color(0xFF0C1A0C), Color(0xFF1A4020), Color(0xFF1DBF73)],
     techTags: ['Flutter', 'Cryptography', 'Dart', 'Security'],
     githubUrl: 'https://github.com/Farooqsarwar/cryptology_app_in_flutter',

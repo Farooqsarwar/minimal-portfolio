@@ -50,7 +50,7 @@ class _OverallRating extends StatelessWidget {
       Text('5.0', style: GoogleFonts.syne(fontSize: 36, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
       const Text('★★★★★', style: TextStyle(color: AppColors.accentAmber, fontSize: 16, letterSpacing: 3)),
       const SizedBox(height: 4),
-      const Text('Fiverr Rating', style: TextStyle(fontSize: 11, color: AppColors.textMuted, letterSpacing: 1)),
+      const Text('Overall Rating', style: TextStyle(fontSize: 11, color: AppColors.textMuted, letterSpacing: 1)),
     ]),
   );
 }
@@ -61,18 +61,18 @@ class _ReviewsGrid extends StatelessWidget {
     // 2 rows × 3 columns
     return Column(children: [
       Row(crossAxisAlignment: CrossAxisAlignment.start,
-        children: reviews.take(3).map((r) => Expanded(
-          child: Padding(padding: const EdgeInsets.only(right: 16), child: _ReviewCard(model: r)),
-        )).toList()),
+          children: reviews.take(3).map((r) => Expanded(
+            child: Padding(padding: const EdgeInsets.only(right: 16), child: _ReviewCard(model: r)),
+          )).toList()),
       const SizedBox(height: 16),
       Row(crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ...reviews.skip(3).map((r) => Expanded(
-            child: Padding(padding: const EdgeInsets.only(right: 16), child: _ReviewCard(model: r)))),
-          // Empty filler if less than 3 in second row
-          if (reviews.length % 3 != 0)
-            ...List.generate(3 - (reviews.length % 3), (_) => const Expanded(child: SizedBox())),
-        ]),
+          children: [
+            ...reviews.skip(3).map((r) => Expanded(
+                child: Padding(padding: const EdgeInsets.only(right: 16), child: _ReviewCard(model: r)))),
+            // Empty filler if less than 3 in second row
+            if (reviews.length % 3 != 0)
+              ...List.generate(3 - (reviews.length % 3), (_) => const Expanded(child: SizedBox())),
+          ]),
     ]);
   }
 }
@@ -82,6 +82,7 @@ class _ReviewCard extends StatefulWidget {
   const _ReviewCard({required this.model});
   @override State<_ReviewCard> createState() => _ReviewCardState();
 }
+
 class _ReviewCardState extends State<_ReviewCard> {
   bool _hovered = false;
 
@@ -101,36 +102,15 @@ class _ReviewCardState extends State<_ReviewCard> {
           boxShadow: _hovered ? [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 30)] : [],
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // Top: stars + gig badge
-          Row(children: [
-            const Text('★★★★★', style: TextStyle(color: AppColors.accentAmber, fontSize: 14, letterSpacing: 1.5)),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.fiverr.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.fiverr.withOpacity(0.2)),
-              ),
-              child: const Text('FIVERR', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                color: AppColors.fiverr, letterSpacing: 1)),
-            ),
-          ]),
+          // Top: stars
+          const Text('★★★★★', style: TextStyle(color: AppColors.accentAmber, fontSize: 14, letterSpacing: 1.5)),
           const SizedBox(height: 14),
 
           // Review text
           Text(widget.model.review,
-            style: const TextStyle(fontSize: 13, height: 1.75, color: AppColors.textMuted,
-              fontWeight: FontWeight.w300, fontStyle: FontStyle.italic)),
-          const SizedBox(height: 20),
-
-          // Meta: price + duration
-          Row(children: [
-            const SizedBox(width: 8),
-            _MetaTag(label: widget.model.duration, color: AppColors.textMuted),
-          ]),
-          const SizedBox(height: 4),
-
+              style: const TextStyle(fontSize: 13, height: 1.75, color: AppColors.textMuted,
+                  fontWeight: FontWeight.w300, fontStyle: FontStyle.italic)),
+          const SizedBox(height: 24), // Increased slightly to replace the removed row's spacing
 
           // Author
           Row(children: [
@@ -141,33 +121,18 @@ class _ReviewCardState extends State<_ReviewCard> {
                 gradient: LinearGradient(colors: widget.model.avatarGradient),
               ),
               child: Center(child: Text(widget.model.initials,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white))),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white))),
             ),
             const SizedBox(width: 10),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(widget.model.name,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
               Text('${widget.model.countryFlag} ${widget.model.country}',
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
             ]),
           ]),
         ]),
       ),
     );
   }
-}
-
-class _MetaTag extends StatelessWidget {
-  final String label; final Color color;
-  const _MetaTag({required this.label, required this.color});
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-    decoration: BoxDecoration(
-      color: color.withOpacity(0.08),
-      borderRadius: BorderRadius.circular(5),
-      border: Border.all(color: color.withOpacity(0.2)),
-    ),
-    child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color)),
-  );
 }

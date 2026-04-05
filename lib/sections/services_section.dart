@@ -63,7 +63,7 @@ class _ServiceCardState extends State<_ServiceCard> {
   @override
   Widget build(BuildContext context) {
     final c = widget.model.accentColor;
-    final isMobile = MediaQuery.of(context).size.width < 768;
+    // final isMobile = MediaQuery.of(context).size.width < 768; // Unused, can be removed if not needed elsewhere
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
@@ -87,23 +87,10 @@ class _ServiceCardState extends State<_ServiceCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(children: [
-              Text(widget.model.icon, style: const TextStyle(fontSize: 32)),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: c.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(100),
-                  border: Border.all(color: c.withOpacity(0.2)),
-                ),
-                child: Text(widget.model.startingFrom,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c)),
-              ),
-            ]),
+            Text(widget.model.icon, style: const TextStyle(fontSize: 32)),
             const SizedBox(height: 14),
             Text(widget.model.title,
-              style: GoogleFonts.syne(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                style: GoogleFonts.syne(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 8),
             Text(widget.model.description,
               style: const TextStyle(fontSize: 13, height: 1.65, color: AppColors.textMuted, fontWeight: FontWeight.w300),

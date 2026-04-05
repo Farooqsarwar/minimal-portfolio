@@ -1,6 +1,11 @@
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
 import '../constants/app_colors.dart';
 import '../constants/app_strings.dart';
 import '../widgets/common_widgets.dart';
@@ -28,25 +33,18 @@ class _ContactSectionState extends State<ContactSection> {
     'Firebase Integration',
     'Figma to Flutter',
     'Code Review / Bug Fix',
+    'Custom Offer',
     'Other',
   ];
 
+  // ─── ADDED "Custom Budget" HERE ───
   static const _budgets = [
     '\$50 – \$200',
     '\$200 – \$500',
     '\$500 – \$1,000',
     '\$1,000+',
+    'Custom Budget',
   ];
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    setState(() {
-      _loading   = false;
-      _submitted = true;
-    });
-  }
 
   @override
   void dispose() {
@@ -56,6 +54,97 @@ class _ContactSectionState extends State<ContactSection> {
     super.dispose();
   }
 
+  // ─── EMAIL JS (WEB LOGIC) ──────────────────────────────────────────────
+  Future<void> _sendEmailWeb(String name, String email, String fullMessage) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+        headers: { 'Content-Type': 'application/json' },
+        body: json.encode({
+          'service_id': 'service_c7aeuz7',
+          'template_id': 'template_wfs38ef',
+          'user_id': 'hf3o9gLowcQS6Lpj_',
+          'template_params': {
+            'from_name': name,
+            'from_email': email,
+            'message': fullMessage,
+            'to_email': 'farooqsarwar953@gmail.com',
+            'reply_to': email,
+          },
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('EmailJS failed');
+      }
+    } catch (e) {
+      // Fallback to Formspree
+      final fallbackResponse = await http.post(
+        Uri.parse('https://formspree.io/f/your_form_id'),
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: json.encode({
+          'name': name,
+          'email': email,
+          'message': fullMessage,
+          '_replyto': email,
+          '_subject': 'Portfolio Contact Form: Message from $name',
+        }),
+      );
+      if (fallbackResponse.statusCode != 200) {
+        throw Exception('All web email methods failed');
+      }
+    }
+  }
+
+  // ─── SMTP MAILER (MOBILE LOGIC) ────────────────────────────────────────
+  Future<void> _sendEmailMobile(String name, String email, String fullMessage) async {
+    final smtpServer = gmail('farooqsarwar953@gmail.com', 'fcbc utuy ebnf kzpm');
+    final emailMessage = Message()
+      ..from = Address(email, name)
+      ..recipients.add('farooqsarwar953@gmail.com')
+      ..subject = 'Portfolio Contact Form: Message from $name'
+      ..text = 'From: $name ($email)\n\n$fullMessage';
+
+    await send(emailMessage, smtpServer);
+  }
+
+  // ─── SUBMIT HANDLER ────────────────────────────────────────────────────
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    HapticFeedback.mediumImpact();
+    setState(() => _loading = true);
+
+    // Combine form data into one detailed message
+    final String fullMessage =
+        'Service Needed: ${_selectedService.isEmpty ? "Not Selected" : _selectedService}\n'
+        'Budget: ${_selectedBudget.isEmpty ? "Not Selected" : _selectedBudget}\n\n'
+        'Message:\n${_messageCtrl.text.trim()}';
+
+    try {
+      if (kIsWeb) {
+        await _sendEmailWeb(_nameCtrl.text.trim(), _emailCtrl.text.trim(), fullMessage);
+      } else {
+        await _sendEmailMobile(_nameCtrl.text.trim(), _emailCtrl.text.trim(), fullMessage);
+      }
+
+      setState(() {
+        _submitted = true;
+      });
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to send message. Please email me directly.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  // ─── UI BUILDER ────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 900;
@@ -69,18 +158,18 @@ class _ContactSectionState extends State<ContactSection> {
       ),
       child: isMobile
           ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _buildInfo(context),
-              const SizedBox(height: 48),
-              _buildForm(context),
-            ])
+        _buildInfo(context),
+        const SizedBox(height: 48),
+        _buildForm(context),
+      ])
           : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _buildInfo(context)),
-                const SizedBox(width: 80),
-                Expanded(child: _buildForm(context)),
-              ],
-            ),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: _buildInfo(context)),
+          const SizedBox(width: 80),
+          Expanded(child: _buildForm(context)),
+        ],
+      ),
     );
   }
 
@@ -124,15 +213,24 @@ class _ContactSectionState extends State<ContactSection> {
               color: AppColors.textMuted,
             )),
         const SizedBox(height: 40),
+
         // Contact links
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContactLinkRow(
-              icon: '📧',
-              label: AppStrings.email,
-              onTap: () =>
-                  launchUrl(Uri.parse('mailto:${AppStrings.email}')),
+            Row(
+              children: [
+                const Text('📧', style: TextStyle(fontSize: 16)),
+                const SizedBox(width: 16),
+                SelectableText(
+                  'farooqsarwar953@gmail.com',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             ContactLinkRow(
@@ -149,8 +247,8 @@ class _ContactSectionState extends State<ContactSection> {
             const SizedBox(height: 16),
             ContactLinkRow(
               icon: '💼',
-              label: 'linkedin.com/in/farooqsarwar',
-              onTap: () => launchUrl(Uri.parse(AppStrings.linkedinUrl)),
+              label: 'linkedin.com/in/farooq-sarwar--',
+              onTap: () => launchUrl(Uri.parse('https://www.linkedin.com/in/farooq-sarwar--/')),
             ),
           ],
         ),
@@ -168,11 +266,12 @@ class _ContactSectionState extends State<ContactSection> {
           border: Border.all(color: AppColors.fiverr.withOpacity(0.25)),
         ),
         child: const Text(
-          AppStrings.formSuccess,
+          "Message sent successfully! I will get back to you soon.",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: AppColors.fiverr,
+            height: 1.5,
           ),
         ),
       );
@@ -183,7 +282,6 @@ class _ContactSectionState extends State<ContactSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Name + Email row
           Row(
             children: [
               Expanded(
@@ -191,8 +289,7 @@ class _ContactSectionState extends State<ContactSection> {
                   label: 'Your Name',
                   hint: 'John Doe',
                   controller: _nameCtrl,
-                  validator: (v) =>
-                      v!.isEmpty ? 'Name is required' : null,
+                  validator: (v) => v!.isEmpty ? 'Name is required' : null,
                 ),
               ),
               const SizedBox(width: 16),
@@ -202,15 +299,13 @@ class _ContactSectionState extends State<ContactSection> {
                   hint: 'john@email.com',
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) =>
-                      !v!.contains('@') ? 'Valid email required' : null,
+                  validator: (v) => !v!.contains('@') ? 'Valid email required' : null,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
 
-          // Service dropdown
           _DropdownField(
             label: 'Service Needed',
             hint: 'Select a service...',
@@ -220,7 +315,6 @@ class _ContactSectionState extends State<ContactSection> {
           ),
           const SizedBox(height: 20),
 
-          // Budget dropdown
           _DropdownField(
             label: 'Budget Range',
             hint: 'Select budget...',
@@ -230,51 +324,37 @@ class _ContactSectionState extends State<ContactSection> {
           ),
           const SizedBox(height: 20),
 
-          // Message
           _FormField(
             label: 'Message',
             hint: 'Tell me about your project...',
             controller: _messageCtrl,
             maxLines: 5,
-            validator: (v) =>
-                v!.isEmpty ? 'Message is required' : null,
+            validator: (v) => v!.isEmpty ? 'Message is required' : null,
           ),
           const SizedBox(height: 28),
 
-          // Submit
           GestureDetector(
             onTap: _loading ? null : _submit,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 36, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
               decoration: BoxDecoration(
                 color: AppColors.accent,
                 borderRadius: BorderRadius.circular(100),
                 boxShadow: [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.3),
-                    blurRadius: 24,
-                  )
+                  BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 24)
                 ],
               ),
               child: _loading
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.bgPrimary,
-                      ),
-                    )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.bgPrimary),
+              )
                   : const Text(
-                      'Send Message →',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.bgPrimary,
-                      ),
-                    ),
+                'Send Message →',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.bgPrimary),
+              ),
             ),
           ),
         ],
@@ -329,20 +409,13 @@ class _FormFieldState extends State<_FormField> {
             maxLines: widget.maxLines,
             keyboardType: widget.keyboardType,
             validator: widget.validator,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textPrimary,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
             decoration: InputDecoration(
               hintText: widget.hint,
-              hintStyle: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 14,
-              ),
+              hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
               filled: true,
               fillColor: AppColors.bgTertiary,
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 18, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppColors.border),
@@ -353,8 +426,7 @@ class _FormFieldState extends State<_FormField> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: AppColors.accent, width: 1),
+                borderSide: const BorderSide(color: AppColors.accent, width: 1),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -400,17 +472,13 @@ class _DropdownField extends StatelessWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value.isEmpty ? null : value,
-          hint: Text(hint,
-              style:
-                  const TextStyle(color: AppColors.textMuted, fontSize: 14)),
+          hint: Text(hint, style: const TextStyle(color: AppColors.textMuted, fontSize: 14)),
           dropdownColor: AppColors.bgTertiary,
-          style: const TextStyle(
-              color: AppColors.textPrimary, fontSize: 14),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
           decoration: InputDecoration(
             filled: true,
             fillColor: AppColors.bgTertiary,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.border),
@@ -421,16 +489,10 @@ class _DropdownField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: AppColors.accent, width: 1),
+              borderSide: const BorderSide(color: AppColors.accent, width: 1),
             ),
           ),
-          items: items
-              .map((i) => DropdownMenuItem(
-                    value: i,
-                    child: Text(i),
-                  ))
-              .toList(),
+          items: items.map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
           onChanged: onChanged,
         ),
       ],

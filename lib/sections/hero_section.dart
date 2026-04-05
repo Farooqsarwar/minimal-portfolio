@@ -124,16 +124,6 @@ class _HeroSectionState extends State<HeroSection> with TickerProviderStateMixin
           const SizedBox(height: 64),
 
           // Stats
-          _fade(4, Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(height: 1, color: AppColors.border),
-            const SizedBox(height: 36),
-            Wrap(spacing: 52, runSpacing: 24, children: const [
-              StatItem(value: '3+',   label: 'Years Experience'),
-              StatItem(value: '50+',  label: 'Projects Delivered'),
-              StatItem(value: '5.0★', label: 'Fiverr Rating'),
-              StatItem(value: '1hr',  label: 'Avg. Response'),
-            ]),
-          ])),
         ]),
       ]),
     );

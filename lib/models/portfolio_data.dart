@@ -200,57 +200,20 @@ final List<ProjectModel> projects = [
 
   // ── Play Store Apps (FocuslabsLLC) ──
   ProjectModel(
-    title: 'Bird Watcher App',
-    category: 'Flutter · Play Store · FocuslabsLLC',
+    title: 'Steganography App',
+    category: 'Flutter · Flask API · Security',
     description:
-    'Cross-platform bird identification and watcher app published on the '
-        'Google Play Store under FocuslabsLLC. Features species catalog, '
-        'sighting logs, and location tagging.',
-    gradientColors: [Color(0xFF0D2137), Color(0xFF0E4D6E), Color(0xFF17A0C4)],
-    techTags: ['Flutter', 'GetX', 'Firebase', 'Maps'],
+    'Advanced steganography application to securely hide images inside images '
+        'and embed secret text within images. Supports encoding and decoding with '
+        'a clean user interface and a powerful Flask backend for secure processing.',
+    gradientColors: [
+      Color(0xFF0C1A0C),
+      Color(0xFF1A4020),
+      Color(0xFF1DBF73)
+    ],
+    techTags: ['Flutter', 'Flask', 'REST API', 'GetX', 'Image Processing'],
     playStoreUrl: 'https://play.google.com/store/apps/developer?id=FocuslabsLLC',
   ),
-  ProjectModel(
-    title: 'Crypto Coin Tracker',
-    category: 'Flutter · REST API · Real-time',
-    description:
-    'Live cryptocurrency price tracker with portfolio management, real-time '
-        'market data from CoinGecko API, candlestick charts, and push price alerts.',
-    gradientColors: [Color(0xFF0C1A0C), Color(0xFF1A4020), Color(0xFF1DBF73)],
-    techTags: ['Flutter', 'REST API', 'GetX', 'Charts'],
-    playStoreUrl: 'https://play.google.com/store/apps/developer?id=FocuslabsLLC',
-  ),
-  ProjectModel(
-    title: 'Fish & Aquarium App',
-    category: 'Flutter · Firebase · Play Store',
-    description:
-    'Aquarium species encyclopedia and care guide app. Features a rich species '
-        'catalog, care reminders, water parameter tracker, and community sharing.',
-    gradientColors: [Color(0xFF001830), Color(0xFF003060), Color(0xFF0066CC)],
-    techTags: ['Flutter', 'Firebase', 'Provider'],
-    playStoreUrl: 'https://play.google.com/store/apps/developer?id=FocuslabsLLC',
-  ),
-  ProjectModel(
-    title: 'Dog Care & Training',
-    category: 'Flutter · Firestore · Play Store',
-    description:
-    'Dog breed encyclopedia and training tracker app. Includes breed info, '
-        'daily training logs, health reminders, and vet appointment scheduling.',
-    gradientColors: [Color(0xFF2A1A00), Color(0xFF5C3810), Color(0xFFC87941)],
-    techTags: ['Flutter', 'Firestore', 'Bloc'],
-    playStoreUrl: 'https://play.google.com/store/apps/developer?id=FocuslabsLLC',
-  ),
-  ProjectModel(
-    title: 'Cat Companion App',
-    category: 'Flutter · Firebase · Play Store',
-    description:
-    'Cat care and breed identification app with AR try-on features, '
-        'health tracker, vaccination reminders, and an interactive cat community.',
-    gradientColors: [Color(0xFF1A0030), Color(0xFF3D0060), Color(0xFF9B30FF)],
-    techTags: ['Flutter', 'Firebase', 'AR'],
-    playStoreUrl: 'https://play.google.com/store/apps/developer?id=FocuslabsLLC',
-  ),
-
   // ── GitHub Projects ──
   ProjectModel(
     title: 'Auction App',

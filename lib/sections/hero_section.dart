@@ -58,7 +58,6 @@ class _HeroSectionState extends State<HeroSection> with TickerProviderStateMixin
           // Badge row
           _fade(0, Wrap(spacing: 10, runSpacing: 8, children: [
             _AvailabilityBadge(),
-            _ResponseBadge(),
           ])),
           const SizedBox(height: 32),
 
@@ -159,43 +158,7 @@ class _AvailabilityBadge extends StatelessWidget {
   );
 }
 
-class _ResponseBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(100),
-      border: Border.all(color: AppColors.fiverr.withOpacity(0.3)),
-      color: AppColors.fiverr.withOpacity(0.08),
-    ),
-    child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Container(width: 7, height: 7,
-        decoration: const BoxDecoration(color: AppColors.fiverr, shape: BoxShape.circle)),
-      const SizedBox(width: 7),
-      const Text('ONLINE ON FIVERR',
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.5, color: AppColors.fiverr)),
-    ]),
-  );
-}
 
-class _InfoChip extends StatelessWidget {
-  final String icon; final String label;
-  const _InfoChip({required this.icon, required this.label});
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: AppColors.border),
-      color: AppColors.surface,
-    ),
-    child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Text(icon, style: const TextStyle(fontSize: 13)),
-      const SizedBox(width: 6),
-      Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
-    ]),
-  );
-}
 
 class _BlinkDot extends StatefulWidget {
   @override State<_BlinkDot> createState() => _BlinkDotState();

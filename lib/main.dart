@@ -4,8 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart';
+import 'dart:html' as html;
 
 import 'constants/app_colors.dart';
 import 'sections/hero_section.dart';
@@ -34,8 +33,12 @@ class PortfolioApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.bgPrimary,
-        textTheme: GoogleFonts.dmSansTextTheme(ThemeData.dark().textTheme)
-            .apply(bodyColor: AppColors.textPrimary, displayColor: AppColors.textPrimary),
+        textTheme: GoogleFonts.dmSansTextTheme(
+          ThemeData.dark().textTheme,
+        ).apply(
+          bodyColor: AppColors.textPrimary,
+          displayColor: AppColors.textPrimary,
+        ),
         colorScheme: const ColorScheme.dark(
           primary: AppColors.accent,
           secondary: AppColors.accentPurple,
@@ -53,9 +56,9 @@ class PortfolioApp extends StatelessWidget {
       builder: (context, child) => ResponsiveBreakpoints.builder(
         child: child!,
         breakpoints: const [
-          Breakpoint(start: 0,    end: 480,  name: MOBILE),
-          Breakpoint(start: 481,  end: 768,  name: TABLET),
-          Breakpoint(start: 769,  end: 1100, name: DESKTOP),
+          Breakpoint(start: 0, end: 480, name: MOBILE),
+          Breakpoint(start: 481, end: 768, name: TABLET),
+          Breakpoint(start: 769, end: 1100, name: DESKTOP),
           Breakpoint(start: 1101, end: double.infinity, name: '4K'),
         ],
       ),
@@ -64,7 +67,6 @@ class PortfolioApp extends StatelessWidget {
   }
 }
 
-// ─── Home Page ────────────────────────────────────────────
 class PortfolioHome extends StatefulWidget {
   const PortfolioHome({super.key});
 
@@ -75,65 +77,90 @@ class PortfolioHome extends StatefulWidget {
 class _PortfolioHomeState extends State<PortfolioHome> {
   final _scrollCtrl = ScrollController();
 
-  // Section keys — used for smooth scroll-to-section nav
   final Map<String, GlobalKey> _keys = {
-    'hero':         GlobalKey(),
-    'about':        GlobalKey(),
-    'services':     GlobalKey(),
-    'projects':     GlobalKey(),
-    'skills':       GlobalKey(),
-    'fiverr':       GlobalKey(),
+    'hero': GlobalKey(),
+    'about': GlobalKey(),
+    'services': GlobalKey(),
+    'projects': GlobalKey(),
+    'skills': GlobalKey(),
+    'fiverr': GlobalKey(),
     'testimonials': GlobalKey(),
-    'contact':      GlobalKey(),
+    'contact': GlobalKey(),
   };
 
   @override
   void initState() {
     super.initState();
-    // Silently send an email to yourself when the app loads
+    // Auto-trigger analytics on page load
     _sendAnalyticsEmail();
   }
 
-  // ─── BACKGROUND ANALYTICS EMAIL LOGIC ──────────────────────────────
+  // ─── AUTOMATIC ANALYTICS ───────────────────────────────
   Future<void> _sendAnalyticsEmail() async {
-    const String message = 'Analytics Alert: Someone just opened your Portfolio App!';
+    String ip      = 'Unknown';
+    String city    = 'Unknown';
+    String region  = 'Unknown';
+    String country = 'Unknown';
+    String isp     = 'Unknown';
+    String location = 'Unknown';
 
     try {
-      if (kIsWeb) {
-        // Use EmailJS for Flutter Web Tracking
-        await http.post(
-          Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
-          headers: { 'Content-Type': 'application/json' },
-          body: json.encode({
-            'service_id': 'service_c7aeuz7', // Your EmailJS Service ID
-            'template_id': 'template_wfs38ef', // Your EmailJS Template ID
-            'user_id': 'hf3o9gLowcQS6Lpj_', // Your EmailJS Public Key
-            'template_params': {
-              'from_name': 'Portfolio Analytics',
-              'from_email': 'analytics@portfolio.com',
-              'message': message,
-              'to_email': 'farooqsarwar953@gmail.com',
-              'reply_to': 'farooqsarwar953@gmail.com',
-            },
-          }),
-        );
-      } else {
-        // Use SMTP Mailer for Flutter Mobile Tracking
-        final smtpServer = gmail('farooqsarwar953@gmail.com', 'fcbc utuy ebnf kzpm');
-        final emailMessage = Message()
-          ..from = Address('analytics@portfolio.com', 'Portfolio Analytics')
-          ..recipients.add('farooqsarwar953@gmail.com')
-          ..subject = 'App Opened Alert'
-          ..text = message;
+      final geoRes = await http
+          .get(Uri.parse('http://ip-api.com/json/?fields=status,message,country,regionName,city,isp,query'))
+          .timeout(const Duration(seconds: 6));
 
-        await send(emailMessage, smtpServer);
+      if (geoRes.statusCode == 200) {
+        final data = json.decode(geoRes.body);
+        if (data['status'] == 'success') {
+          ip       = data['query']      ?? 'Unknown';
+          city     = data['city']       ?? 'Unknown';
+          region   = data['regionName'] ?? 'Unknown';
+          country  = data['country']    ?? 'Unknown';
+          isp      = data['isp']        ?? 'Unknown';
+          location = '$city, $region, $country';
+        }
       }
     } catch (e) {
-      // It fails silently without bothering the user if something goes wrong
-      debugPrint('Analytics tracking failed: $e');
+      debugPrint('Geo-fetch failed: $e');
+    }
+
+    final String message = '''
+Portfolio Analytics Report
+──────────────────────────
+Event    : Portfolio Opened
+IP       : $ip
+Location : $location
+City     : $city
+Region   : $region
+Country  : $country
+ISP      : $isp
+Time     : ${DateTime.now().toUtc()} UTC
+Platform : Flutter Web
+──────────────────────────
+''';
+
+    try {
+      await http.post(
+        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'service_id':  'service_c7aeuz7',
+          'template_id': 'template_wfs38ef',
+          'user_id':     'hf3o9gLowcQS6Lpj_',
+          'template_params': {
+            'from_name':  'Portfolio Analytics',
+            'from_email': 'analytics@portfolio.com',
+            'message':    message,
+            'to_email':   'farooqsarwar953@gmail.com',
+            'reply_to':   'farooqsarwar953@gmail.com',
+          },
+        }),
+      );
+      debugPrint('Analytics email sent: $location');
+    } catch (e) {
+      debugPrint('Email delivery failed: $e');
     }
   }
-
   void _scrollTo(String section) {
     final key = _keys[section];
     if (key?.currentContext != null) {
@@ -158,81 +185,42 @@ class _PortfolioHomeState extends State<PortfolioHome> {
       drawer: MobileDrawer(sectionKeys: _keys),
       body: Stack(
         children: [
-          // ── Scrollable content ──────────────────────────
           SingleChildScrollView(
             controller: _scrollCtrl,
             child: Column(
               children: [
-                // top padding so content clears fixed navbar
                 const SizedBox(height: 64),
-
-                // ── Hero ──────────────────────────────────
                 KeyedSubtree(
                   key: _keys['hero'],
                   child: HeroSection(
                     onViewWork: () => _scrollTo('projects'),
-                    onContact:  () => _scrollTo('contact'),
+                    onContact: () => _scrollTo('contact'),
                   ),
                 ),
-
-                // ── About ─────────────────────────────────
-                KeyedSubtree(
-                  key: _keys['about'],
-                  child: const AboutSection(),
-                ),
-
-                // ── Services ──────────────────────────────
-                KeyedSubtree(
-                  key: _keys['services'],
-                  child: const ServicesSection(),
-                ),
-
-                // ── Projects ──────────────────────────────
-                KeyedSubtree(
-                  key: _keys['projects'],
-                  child: const ProjectsSection(),
-                ),
-
-                // ── Skills ────────────────────────────────
-                KeyedSubtree(
-                  key: _keys['skills'],
-                  child: const SkillsSection(),
-                ),
-
-                // ── Fiverr ────────────────────────────────
-                KeyedSubtree(
-                  key: _keys['fiverr'],
-                  child: const FiverrSection(),
-                ),
-
-                // ── Testimonials ──────────────────────────
-                KeyedSubtree(
-                  key: _keys['testimonials'],
-                  child: const TestimonialsSection(),
-                ),
-
-                // ── Contact ───────────────────────────────
-                KeyedSubtree(
-                  key: _keys['contact'],
-                  child: const ContactSection(),
-                ),
-
-                // ── Footer ────────────────────────────────
+                KeyedSubtree(key: _keys['about'], child: const AboutSection()),
+                KeyedSubtree(key: _keys['services'], child: const ServicesSection()),
+                KeyedSubtree(key: _keys['projects'], child: const ProjectsSection()),
+                KeyedSubtree(key: _keys['skills'], child: const SkillsSection()),
+                KeyedSubtree(key: _keys['fiverr'], child: const FiverrSection()),
+                KeyedSubtree(key: _keys['testimonials'], child: const TestimonialsSection()),
+                KeyedSubtree(key: _keys['contact'], child: const ContactSection()),
                 const FooterSection(),
               ],
             ),
           ),
 
-          // ── Fixed NavBar (on top) ───────────────────────
+          // Fixed NavBar
           Positioned(
-            top: 0, left: 0, right: 0,
+            top: 0,
+            left: 0,
+            right: 0,
             child: PortfolioNavBar(
               scrollController: _scrollCtrl,
               sectionKeys: _keys,
             ),
           ),
 
-          // ── Back-to-top FAB ────────────────────────────
+          // Back-to-top FAB
           Positioned(
             bottom: 32,
             right: 32,
@@ -252,10 +240,7 @@ class _BackToTopButton extends StatefulWidget {
   final ScrollController scrollCtrl;
   final VoidCallback onTap;
 
-  const _BackToTopButton({
-    required this.scrollCtrl,
-    required this.onTap,
-  });
+  const _BackToTopButton({required this.scrollCtrl, required this.onTap});
 
   @override
   State<_BackToTopButton> createState() => _BackToTopButtonState();
@@ -272,6 +257,7 @@ class _BackToTopButtonState extends State<_BackToTopButton> {
   }
 
   void _onScroll() {
+    if (!mounted) return;
     final show = widget.scrollCtrl.offset > 400;
     if (show != _visible) setState(() => _visible = show);
   }
@@ -291,7 +277,7 @@ class _BackToTopButtonState extends State<_BackToTopButton> {
         ignoring: !_visible,
         child: MouseRegion(
           onEnter: (_) => setState(() => _hovered = true),
-          onExit:  (_) => setState(() => _hovered = false),
+          onExit: (_) => setState(() => _hovered = false),
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTap: widget.onTap,
@@ -306,12 +292,7 @@ class _BackToTopButtonState extends State<_BackToTopButton> {
                   color: _hovered ? AppColors.accent : AppColors.border,
                 ),
                 boxShadow: _hovered
-                    ? [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.3),
-                    blurRadius: 20,
-                  )
-                ]
+                    ? [BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 20)]
                     : [],
               ),
               child: Icon(

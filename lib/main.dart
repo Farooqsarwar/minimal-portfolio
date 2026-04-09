@@ -96,16 +96,18 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   }
 
   // ─── ANALYTICS LOGIC (Vercel & Mobile Compatible) ──────
-// ─── ANALYTICS LOGIC (Vercel & Ad-Blocker Resilient) ──────
+// ─── ANALYTICS LOGIC (With Exact Coordinates) ──────────
   Future<void> _sendAnalyticsEmail() async {
     String ip       = 'Unknown';
     String city     = 'Unknown';
     String region   = 'Unknown';
     String country  = 'Unknown';
+    String lat      = 'Unknown';
+    String lon      = 'Unknown';
     String location = 'Unknown';
 
     try {
-      // GeoJS is highly permissive with CORS and Vercel domains
+      // GeoJS provides latitude and longitude securely
       final geoRes = await http
           .get(Uri.parse('https://get.geojs.io/v1/ip/geo.json'))
           .timeout(const Duration(seconds: 8));
@@ -117,26 +119,32 @@ class _PortfolioHomeState extends State<PortfolioHome> {
         city     = data['city'] ?? 'Unknown';
         region   = data['region'] ?? 'Unknown';
         country  = data['country'] ?? 'Unknown';
+
+        // Extract exact coordinates
+        lat      = data['latitude']?.toString() ?? 'Unknown';
+        lon      = data['longitude']?.toString() ?? 'Unknown';
+
         location = '$city, $region, $country';
-      } else {
-        debugPrint('GeoJS API Error Status: ${geoRes.statusCode}');
       }
     } catch (e) {
-      // If it fails here, the user's browser (Ad-blocker/Brave) actively killed the request.
-      debugPrint('Geo-fetch completely blocked by browser: $e');
+      debugPrint('Geo-fetch blocked or failed: $e');
     }
+
+    // Generate a Google Maps link for easy clicking in your email
+    String mapsLink = (lat != 'Unknown' && lon != 'Unknown')
+        ? 'https://www.google.com/maps/search/?api=1&query=$lat,$lon'
+        : 'Not available';
 
     final String message = '''
 Portfolio Analytics Report
 ──────────────────────────
-Event    : Portfolio Opened
-IP       : $ip
-Location : $location
-City     : $city
-Region   : $region
-Country  : $country
-Time     : ${DateTime.now().toUtc()} UTC
-Platform : Flutter Web (Vercel)
+Event       : Portfolio Opened
+IP          : $ip
+Location    : $location
+Coordinates : $lat, $lon
+Map Link    : $mapsLink
+Time        : ${DateTime.now().toUtc()} UTC
+Platform    : Flutter Web (Vercel)
 ──────────────────────────
 ''';
 
@@ -145,9 +153,9 @@ Platform : Flutter Web (Vercel)
         Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'service_id':  'service_c7aeuz7',
-          'template_id': 'template_wfs38ef',
-          'user_id':     'hf3o9gLowcQS6Lpj_',
+          'service_id':  'service_c7aeuz7', // Your EmailJS Service ID
+          'template_id': 'template_wfs38ef', // Your EmailJS Template ID
+          'user_id':     'hf3o9gLowcQS6Lpj_', // Your EmailJS Public Key
           'template_params': {
             'from_name':  'Portfolio Analytics',
             'from_email': 'analytics@portfolio.com',
@@ -157,7 +165,7 @@ Platform : Flutter Web (Vercel)
           },
         }),
       );
-      debugPrint('Analytics Sent: $location');
+      debugPrint('Analytics Sent with Coordinates: $lat, $lon');
     } catch (e) {
       debugPrint('EmailJS failed: $e');
     }

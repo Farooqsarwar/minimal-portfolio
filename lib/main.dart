@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -6,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:html' as html;
 
+// Import your custom sections and constants
 import 'constants/app_colors.dart';
 import 'sections/hero_section.dart';
 import 'sections/about_section.dart';
@@ -91,37 +91,39 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   @override
   void initState() {
     super.initState();
-    // Auto-trigger analytics on page load
+    // Fires immediately when the website loads
     _sendAnalyticsEmail();
   }
 
-  // ─── AUTOMATIC ANALYTICS ───────────────────────────────
+  // ─── ANALYTICS LOGIC (Vercel & Mobile Compatible) ──────
+// ─── ANALYTICS LOGIC (Vercel & Ad-Blocker Resilient) ──────
   Future<void> _sendAnalyticsEmail() async {
-    String ip      = 'Unknown';
-    String city    = 'Unknown';
-    String region  = 'Unknown';
-    String country = 'Unknown';
-    String isp     = 'Unknown';
+    String ip       = 'Unknown';
+    String city     = 'Unknown';
+    String region   = 'Unknown';
+    String country  = 'Unknown';
     String location = 'Unknown';
 
     try {
+      // GeoJS is highly permissive with CORS and Vercel domains
       final geoRes = await http
-          .get(Uri.parse('http://ip-api.com/json/?fields=status,message,country,regionName,city,isp,query'))
-          .timeout(const Duration(seconds: 6));
+          .get(Uri.parse('https://get.geojs.io/v1/ip/geo.json'))
+          .timeout(const Duration(seconds: 8));
 
       if (geoRes.statusCode == 200) {
         final data = json.decode(geoRes.body);
-        if (data['status'] == 'success') {
-          ip       = data['query']      ?? 'Unknown';
-          city     = data['city']       ?? 'Unknown';
-          region   = data['regionName'] ?? 'Unknown';
-          country  = data['country']    ?? 'Unknown';
-          isp      = data['isp']        ?? 'Unknown';
-          location = '$city, $region, $country';
-        }
+
+        ip       = data['ip'] ?? 'Unknown';
+        city     = data['city'] ?? 'Unknown';
+        region   = data['region'] ?? 'Unknown';
+        country  = data['country'] ?? 'Unknown';
+        location = '$city, $region, $country';
+      } else {
+        debugPrint('GeoJS API Error Status: ${geoRes.statusCode}');
       }
     } catch (e) {
-      debugPrint('Geo-fetch failed: $e');
+      // If it fails here, the user's browser (Ad-blocker/Brave) actively killed the request.
+      debugPrint('Geo-fetch completely blocked by browser: $e');
     }
 
     final String message = '''
@@ -133,9 +135,8 @@ Location : $location
 City     : $city
 Region   : $region
 Country  : $country
-ISP      : $isp
 Time     : ${DateTime.now().toUtc()} UTC
-Platform : Flutter Web
+Platform : Flutter Web (Vercel)
 ──────────────────────────
 ''';
 
@@ -156,9 +157,9 @@ Platform : Flutter Web
           },
         }),
       );
-      debugPrint('Analytics email sent: $location');
+      debugPrint('Analytics Sent: $location');
     } catch (e) {
-      debugPrint('Email delivery failed: $e');
+      debugPrint('EmailJS failed: $e');
     }
   }
   void _scrollTo(String section) {
@@ -185,6 +186,7 @@ Platform : Flutter Web
       drawer: MobileDrawer(sectionKeys: _keys),
       body: Stack(
         children: [
+          // ── Scrollable Content ──────────────────────────
           SingleChildScrollView(
             controller: _scrollCtrl,
             child: Column(
@@ -209,7 +211,7 @@ Platform : Flutter Web
             ),
           ),
 
-          // Fixed NavBar
+          // ── Fixed NavBar ────────────────────────────────
           Positioned(
             top: 0,
             left: 0,
@@ -220,7 +222,7 @@ Platform : Flutter Web
             ),
           ),
 
-          // Back-to-top FAB
+          // ── Back-to-top Button ──────────────────────────
           Positioned(
             bottom: 32,
             right: 32,
@@ -235,7 +237,7 @@ Platform : Flutter Web
   }
 }
 
-// ─── Back-to-top Button ───────────────────────────────────
+// ─── Back-to-top Button Widget ───────────────────────────
 class _BackToTopButton extends StatefulWidget {
   final ScrollController scrollCtrl;
   final VoidCallback onTap;

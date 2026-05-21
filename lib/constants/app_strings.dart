@@ -34,8 +34,8 @@ class AppStrings {
       "I specialize in Flutter and React Native development across Android, iOS, and Web.";
   static const String aboutBody2 =
       'My expertise spans the entire development lifecycle — from architecture and UI/UX '
-      'implementation to Firebase integration, REST APIs, state management (GetX, Bloc, '
-      'Riverpod), and app store deployment.';
+      'implementation to Firebase integration, REST APIs, state management (GetX, '
+      'provider), and app store deployment.';
   static const String aboutBody3 =
       'I also build AI-powered mobile apps, integrating pre-trained models directly into '
       'Flutter/React Native frontends for real-time inference and smart user experiences.';
@@ -74,5 +74,5 @@ class AppStrings {
 
   // Footer
   static const String footerCopy =
-      '© 2025 Farooq Sarwar · Flutter & React Native Developer';
+      '© Farooq Sarwar · Flutter & React Native Developer';
 }

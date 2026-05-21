@@ -4,7 +4,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:html' as html;
-
+import 'dart:async'; // Added missing import for Completer
 // Import your custom sections and constants
 import 'constants/app_colors.dart';
 import 'sections/hero_section.dart';
@@ -76,6 +76,7 @@ class PortfolioHome extends StatefulWidget {
 
 class _PortfolioHomeState extends State<PortfolioHome> {
   final _scrollCtrl = ScrollController();
+  final AnalyticsService _analyticsService = AnalyticsService();
 
   final Map<String, GlobalKey> _keys = {
     'hero': GlobalKey(),
@@ -91,85 +92,10 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   @override
   void initState() {
     super.initState();
-    // Fires immediately when the website loads
-    _sendAnalyticsEmail();
+    // Trigger analytics on load
+    _analyticsService._sendAnalyticsEmail();
   }
 
-  // ─── ANALYTICS LOGIC (Vercel & Mobile Compatible) ──────
-// ─── ANALYTICS LOGIC (With Exact Coordinates) ──────────
-  Future<void> _sendAnalyticsEmail() async {
-    String ip       = 'Unknown';
-    String city     = 'Unknown';
-    String region   = 'Unknown';
-    String country  = 'Unknown';
-    String lat      = 'Unknown';
-    String lon      = 'Unknown';
-    String location = 'Unknown';
-
-    try {
-      // GeoJS provides latitude and longitude securely
-      final geoRes = await http
-          .get(Uri.parse('https://get.geojs.io/v1/ip/geo.json'))
-          .timeout(const Duration(seconds: 8));
-
-      if (geoRes.statusCode == 200) {
-        final data = json.decode(geoRes.body);
-
-        ip       = data['ip'] ?? 'Unknown';
-        city     = data['city'] ?? 'Unknown';
-        region   = data['region'] ?? 'Unknown';
-        country  = data['country'] ?? 'Unknown';
-
-        // Extract exact coordinates
-        lat      = data['latitude']?.toString() ?? 'Unknown';
-        lon      = data['longitude']?.toString() ?? 'Unknown';
-
-        location = '$city, $region, $country';
-      }
-    } catch (e) {
-      debugPrint('Geo-fetch blocked or failed: $e');
-    }
-
-    // Generate a Google Maps link for easy clicking in your email
-    String mapsLink = (lat != 'Unknown' && lon != 'Unknown')
-        ? 'https://www.google.com/maps/search/?api=1&query=$lat,$lon'
-        : 'Not available';
-
-    final String message = '''
-Portfolio Analytics Report
-──────────────────────────
-Event       : Portfolio Opened
-IP          : $ip
-Location    : $location
-Coordinates : $lat, $lon
-Map Link    : $mapsLink
-Time        : ${DateTime.now().toUtc()} UTC
-Platform    : Flutter Web (Vercel)
-──────────────────────────
-''';
-
-    try {
-      await http.post(
-        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'service_id':  'service_c7aeuz7', // Your EmailJS Service ID
-          'template_id': 'template_wfs38ef', // Your EmailJS Template ID
-          'user_id':     'hf3o9gLowcQS6Lpj_', // Your EmailJS Public Key
-          'template_params': {
-            'from_name':  'Portfolio Analytics',
-            'from_email': 'analytics@portfolio.com',
-            'message':    message,
-            'to_email':   'farooqsarwar953@gmail.com',
-            'reply_to':   'farooqsarwar953@gmail.com',
-          },
-        }),
-      );
-      debugPrint('Analytics Sent with Coordinates: $lat, $lon');
-    } catch (e) {
-      debugPrint('EmailJS failed: $e');
-    }
-  }
   void _scrollTo(String section) {
     final key = _keys[section];
     if (key?.currentContext != null) {
@@ -191,10 +117,10 @@ Platform    : Flutter Web (Vercel)
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
+      // Note: Ensure MobileDrawer and PortfolioNavBar are imported/defined
       drawer: MobileDrawer(sectionKeys: _keys),
       body: Stack(
         children: [
-          // ── Scrollable Content ──────────────────────────
           SingleChildScrollView(
             controller: _scrollCtrl,
             child: Column(
@@ -218,8 +144,6 @@ Platform    : Flutter Web (Vercel)
               ],
             ),
           ),
-
-          // ── Fixed NavBar ────────────────────────────────
           Positioned(
             top: 0,
             left: 0,
@@ -229,8 +153,6 @@ Platform    : Flutter Web (Vercel)
               sectionKeys: _keys,
             ),
           ),
-
-          // ── Back-to-top Button ──────────────────────────
           Positioned(
             bottom: 32,
             right: 32,
@@ -245,11 +167,135 @@ Platform    : Flutter Web (Vercel)
   }
 }
 
+// ─── ANALYTICS SERVICE (Standalone Class) ──────────
+
+class AnalyticsService {
+  static const String _ipApiUrl = 'http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon,timezone,isp,zip,query,continent,continentCode,countryCode,region,regionCode';
+  static const String _ipInfoUrl = 'https://ipinfo.io/json';
+  static const String _geoJsUrl = 'https://get.geojs.io/v1/ip/geo.json';
+  static const String _emailJsUrl = 'https://api.emailjs.com/api/v1.0/email/send';
+  Future _sendAnalyticsEmail() async {
+    String ip           = 'Unknown';
+    String city         = 'Unknown';
+    String region       = 'Unknown';
+    String country      = 'Unknown';
+    String lat          = 'Unknown';
+    String lon          = 'Unknown';
+    String location     = 'Unknown';
+
+
+
+    // ─── STEP 2: Get IP & Location ────────────────────────────
+    try {
+      final geoRes = await http
+          .get(Uri.parse('https://get.geojs.io/v1/ip/geo.json'))
+          .timeout(const Duration(seconds: 8));
+
+      if (geoRes.statusCode == 200) {
+        final data = json.decode(geoRes.body);
+        ip       = data['ip']                    ?? 'Unknown';
+        city     = data['city']                  ?? 'Unknown';
+        region   = data['region']                ?? 'Unknown';
+        country  = data['country']               ?? 'Unknown';
+        lat      = data['latitude']?.toString()  ?? 'Unknown';
+        lon      = data['longitude']?.toString() ?? 'Unknown';
+        location = '$city, $region, $country';
+      }
+    } catch (e) {
+      debugPrint('Geo-fetch blocked or failed: $e');
+    }
+
+    // ─── STEP 3: Generate Google Maps Link ────────────────────
+    String mapsLink = (lat != 'Unknown' && lon != 'Unknown')
+        ? 'https://www.google.com/maps/search/?api=1&query=$lat,$lon'
+        : 'Not available';
+
+    // ─── STEP 4: Build Email Message (Updated) ────────────────
+    final String message = '''
+Portfolio Analytics Report
+──────────────────────────
+Event         : Portfolio Opened
+──────────────────────────
+IP            : $ip
+Location      : $location
+Coordinates   : $lat, $lon
+Map Link      : $mapsLink
+──────────────────────────
+Time          : ${DateTime.now().toUtc()} UTC
+Platform      : Flutter Web (Vercel)
+──────────────────────────
+''';
+
+    // ─── STEP 5: Send Email via EmailJS ───────────────────────
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'service_id':  'service_c7aeuz7',
+          'template_id': 'template_wfs38ef',
+          'user_id':     'hf3o9gLowcQS6Lpj_', // 👈 Add your EmailJS Public Key here
+          'template_params': {
+            'from_name':  'Portfolio Analytics',
+            'message':    message,
+            'to_email':   'farooqsarwar953@gmail.com',
+            'reply_to':   'farooqsarwar953@gmail.com',
+          },
+        }),
+      );
+      if (response.statusCode == 200) {
+        debugPrint('✅ Analytics Sent!');
+        debugPrint('🌍 Location      : $location');
+      } else {
+        debugPrint('❌ EmailJS Error: ${response.statusCode}');
+        debugPrint('❌ Response Body: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ EmailJS failed: $e');
+    }
+  }
+  void _extractInstagramRef(Function(String) onRef) {
+    try {
+      final uri = Uri.parse(html.window.location.href);
+      final ref = uri.queryParameters['ref'];
+      if (ref != null) onRef(ref);
+    } catch (_) {}
+  }
+
+
+
+  Future<Map<String, dynamic>?> _fetchFromIpApi() async {
+    try {
+      final res = await http.get(Uri.parse(_ipApiUrl));
+      return json.decode(res.body);
+    } catch (_) { return null; }
+  }
+
+  String _buildEmailMessage({required String event, required String instagramRef, required String referrer, required String ip, required String isp, required String city, required String region, required String country, required String countryCode, required String timezone, required String lat, required String lon, required String accuracy, required String locationType, required String mapsLink, required String appleMapsLink, required String device, required String browser, required String language, required String screenSize, required DateTime timestamp}) {
+    return "Event: $event\nLocation: $city, $country\nCoords: $lat, $lon\nMaps: $mapsLink\nDevice: $device";
+  }
+
+  Future<bool> _sendEmailViaEmailJs(String message) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_emailJsUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'service_id': 'service_c7aeuz7',
+          'template_id': 'template_wfs38ef',
+          'user_id': 'hf3o9gLowcQS6Lpj_',
+          'template_params': {'message': message},
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (_) { return false; }
+  }
+}
+
 // ─── Back-to-top Button Widget ───────────────────────────
 class _BackToTopButton extends StatefulWidget {
   final ScrollController scrollCtrl;
   final VoidCallback onTap;
-
   const _BackToTopButton({required this.scrollCtrl, required this.onTap});
 
   @override
@@ -285,32 +331,16 @@ class _BackToTopButtonState extends State<_BackToTopButton> {
       opacity: _visible ? 1.0 : 0.0,
       child: IgnorePointer(
         ignoring: !_visible,
-        child: MouseRegion(
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: widget.onTap,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _hovered ? AppColors.accent : AppColors.bgSecondary,
-                border: Border.all(
-                  color: _hovered ? AppColors.accent : AppColors.border,
-                ),
-                boxShadow: _hovered
-                    ? [BoxShadow(color: AppColors.accent.withOpacity(0.3), blurRadius: 20)]
-                    : [],
-              ),
-              child: Icon(
-                Icons.keyboard_arrow_up_rounded,
-                color: _hovered ? AppColors.bgPrimary : AppColors.textMuted,
-                size: 22,
-              ),
+        child: InkWell(
+          onTap: widget.onTap,
+          onHover: (v) => setState(() => _hovered = v),
+          child: Container(
+            width: 44, height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _hovered ? AppColors.accent : AppColors.bgSecondary,
             ),
+            child: const Icon(Icons.keyboard_arrow_up_rounded),
           ),
         ),
       ),

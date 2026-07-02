@@ -615,7 +615,7 @@ class _ProjLinkState extends State<_ProjLink> {
 String _projectImage(String title) {
   switch (title) {
     case 'Lung Scan AI':
-      return 'https://static.vecteezy.com/system/resources/previews/004/745/178/non_2x/application-design-set-for-lungs-health-care-check-your-lungs-and-lungs-checkup-ui-onboarding-screens-design-mobile-app-template-web-site-isometric-modern-illustrations-for-user-interface-free-vector.jpg';
+      return 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=80';
     case 'Auction App':
       return 'https://cdn.dribbble.com/userupload/44359403/file/c884a636351eae51d0e5e2ddf7443ad8.png?resize=1600x1138&vertical=center';
     case 'Minimal Social Media Web App':

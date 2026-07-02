@@ -376,7 +376,7 @@ String _toolLogo(String name) {
     case 'VS Code':
       return 'https://img.icons8.com/color/96/visual-studio-code-2019.png';
     case 'CI/CD':
-      return 'https://img.icons8.com/color/96/continuous-integration.png';
+      return 'https://img.icons8.com/color/96/deployment.png';
     default:
       return 'https://img.icons8.com/color/96/code.png';
   }

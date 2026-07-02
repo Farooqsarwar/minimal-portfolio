@@ -141,7 +141,7 @@ final List<ServiceModel> services = [
     'Responsive web apps built with Flutter Web — PWA-ready, deployed to '
         'Firebase Hosting or GitHub Pages with full cross-device compatibility.',
     tags: ['Flutter Web', 'PWA', 'Firebase Hosting'],
-    accentColor: AppColors.serviceGreen,
+    accentColor: AppColors.accent,
   ),
   ServiceModel(
     icon: '🎨',
@@ -150,7 +150,7 @@ final List<ServiceModel> services = [
     'Convert your Figma, Adobe XD, or Sketch designs into pixel-perfect Flutter '
         'or React Native code with precise animations and proper theming.',
     tags: ['Figma to Code', 'Pixel Perfect', 'Animations'],
-    accentColor: AppColors.servicePink,
+    accentColor: AppColors.accentPurple,
   ),
   ServiceModel(
     icon: '🔥',
@@ -168,7 +168,7 @@ final List<ServiceModel> services = [
     'Audit your Flutter or React Native codebase, fix crashes, resolve performance '
         'bottlenecks, and refactor to industry-standard clean architecture patterns.',
     tags: ['Performance', 'Clean Code', 'Debugging'],
-    accentColor: AppColors.serviceTeal,
+    accentColor: AppColors.accent,
   ),
 ];
 

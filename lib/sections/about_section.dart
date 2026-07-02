@@ -115,7 +115,7 @@ class _PhotoWidget extends StatelessWidget {
           // FIX: CachedNetworkImage — no re-fetch on rebuild/scroll
           CachedNetworkImage(
             imageUrl:
-            'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80',
+            'https://plus.unsplash.com/premium_photo-1720287601920-ee8c503af775?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bW9iaWxlJTIwYXBwJTIwZGV2ZWxvcG1lbnR8ZW58MHx8MHx8fDA%3D',
             fit: BoxFit.cover,
             placeholder: (_, __) => Container(
               color: AppColors.bgSecondary,

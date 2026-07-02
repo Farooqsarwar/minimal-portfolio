@@ -39,26 +39,21 @@ class _ContactSectionState extends State<ContactSection> {
     super.dispose();
   }
 
-  // Unified safe email sending using EmailJS for ALL platforms
+  // Sends via our own serverless proxy (/api/send-email), which holds the
+  // EmailJS credentials server-side so they never ship in the client bundle.
   Future<void> _sendEmail(String name, String email, String fullMessage) async {
     try {
       final response = await http.post(
-        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+        Uri.parse('/api/send-email'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'service_id': 'service_c7aeuz7',
-          'template_id': 'template_wfs38ef',
-          'user_id': 'hf3o9gLowcQS6Lpj_',
-          'template_params': {
-            'from_name': name,
-            'from_email': email,
-            'message': fullMessage,
-            'to_email': 'farooqsarwar953@gmail.com',
-            'reply_to': email,
-          },
+          'type': 'contact',
+          'from_name': name,
+          'from_email': email,
+          'message': fullMessage,
         }),
       );
-      if (response.statusCode != 200) throw Exception('EmailJS failed');
+      if (response.statusCode != 200) throw Exception('Email proxy failed');
     } catch (e) {
       // Formspree fallback (Make sure to replace 'your_form_id' with your actual Formspree ID if you want to use this)
       final fallbackResponse = await http.post(

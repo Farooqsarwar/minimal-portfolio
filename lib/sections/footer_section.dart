@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constants/app_colors.dart';
@@ -234,12 +235,12 @@ class _SocialIconState extends State<_SocialIcon> {
                   : [],
             ),
             child: Center(
-              child: Image.network(
-                widget.item.iconUrl,
+              child: CachedNetworkImage(
+                imageUrl: widget.item.iconUrl,
                 width: 18,
                 height: 18,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Icon(
+                errorWidget: (_, __, ___) => Icon(
                   widget.item.fallback,
                   size: 18,
                   color: _hovered

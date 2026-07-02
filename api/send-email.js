@@ -7,6 +7,37 @@
 
 const MAX_LEN = 5000;
 
+// Basic anti-abuse: only requests whose Origin/Referer looks like our own
+// Vercel deployments (production, previews, git-branch aliases) are served.
+// Headers are trivially spoofable via curl, so this isn't a hard boundary —
+// it just stops casual scraping of the endpoint from other sites.
+function isAllowedOrigin(req) {
+  const header = req.headers.origin || req.headers.referer;
+  if (!header) return false;
+  try {
+    const { hostname } = new URL(header);
+    return hostname === 'localhost'
+      || (hostname.endsWith('.vercel.app') && hostname.includes('minimal-portfolio'));
+  } catch {
+    return false;
+  }
+}
+
+// Best-effort in-memory rate limit. Resets whenever the serverless instance
+// is recycled and isn't shared across instances, but still blunts a single
+// script hammering one warm function.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 5;
+const hitsByIp = new Map();
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const hits = (hitsByIp.get(ip) || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  hits.push(now);
+  hitsByIp.set(ip, hits);
+  return hits.length > RATE_LIMIT_MAX;
+}
+
 function truncate(value, max = MAX_LEN) {
   return typeof value === 'string' ? value.slice(0, max) : '';
 }
@@ -15,6 +46,15 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!isAllowedOrigin(req)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ error: 'Too many requests' });
   }
 
   const {

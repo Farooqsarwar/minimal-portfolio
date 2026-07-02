@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -30,6 +31,8 @@ class _ContactSectionState extends State<ContactSection> {
   static const _budgets = [
     '\$50 – \$200', '\$200 – \$500', '\$500 – \$1,000', '\$1,000+', 'Custom Budget',
   ];
+
+  static final RegExp _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
   @override
   void dispose() {
@@ -144,8 +147,8 @@ class _ContactSectionState extends State<ContactSection> {
           Container(
             width: 36, height: 36,
             decoration: BoxDecoration(color: const Color(0xFFEA4335).withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-            child: Center(child: Image.network('https://img.icons8.com/color/96/gmail-new.png', width: 18, height: 18, fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Icon(Icons.email_rounded, size: 16, color: const Color(0xFFEA4335).withOpacity(0.7)))),
+            child: Center(child: CachedNetworkImage(imageUrl: 'https://img.icons8.com/color/96/gmail-new.png', width: 18, height: 18, fit: BoxFit.contain,
+                errorWidget: (_, __, ___) => Icon(Icons.email_rounded, size: 16, color: const Color(0xFFEA4335).withOpacity(0.7)))),
           ),
           const SizedBox(width: 12),
           Expanded(child: SelectableText('farooqsarwar953@gmail.com', style: GoogleFonts.inter(
@@ -161,7 +164,7 @@ class _ContactSectionState extends State<ContactSection> {
       _ContactLink(
           iconUrl: 'https://img.icons8.com/ios-filled/96/1dbf73/fiverr.png',
           fallback: Icons.work_rounded, color: const Color(0xFF1DBF73),
-          label: 'fiverr.com/farooq_sarwar',
+          label: 'fiverr.com/farooqsarwar227',
           onTap: () => launchUrl(Uri.parse(AppStrings.fiverrUrl))),
       const SizedBox(height: 10),
       _ContactLink(
@@ -208,7 +211,7 @@ class _ContactSectionState extends State<ContactSection> {
           const SizedBox(width: 16),
           Expanded(child: _FormField(label: 'Email Address', hint: 'john@email.com',
               controller: _emailCtrl, keyboardType: TextInputType.emailAddress,
-              validator: (v) => !v!.contains('@') ? 'Valid email required' : null)),
+              validator: (v) => !_emailRegex.hasMatch(v ?? '') ? 'Valid email required' : null)),
         ]),
         const SizedBox(height: 20),
         _DropdownField(label: 'Service Needed', hint: 'Select a service...',
@@ -282,8 +285,8 @@ class _ContactLinkState extends State<_ContactLink> {
             Container(
               width: 36, height: 36,
               decoration: BoxDecoration(color: widget.color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-              child: Center(child: Image.network(widget.iconUrl, width: 18, height: 18, fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Icon(widget.fallback, size: 16, color: widget.color.withOpacity(0.7)))),
+              child: Center(child: CachedNetworkImage(imageUrl: widget.iconUrl, width: 18, height: 18, fit: BoxFit.contain,
+                  errorWidget: (_, __, ___) => Icon(widget.fallback, size: 16, color: widget.color.withOpacity(0.7)))),
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(widget.label, style: GoogleFonts.inter(

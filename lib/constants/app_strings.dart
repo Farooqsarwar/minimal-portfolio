@@ -11,7 +11,7 @@ class AppStrings {
       'delivering high-performance, cross-platform apps for Android, iOS, and Web. '
       'Based in Pakistan, trusted by clients worldwide.';
   static const String availability = 'Available for Freelance Work';
-  static const String email        = 'farooqsarwar227@gmail.com';
+  static const String email        = 'farooqsarwar953@gmail.com';
   static const String githubUrl    = 'https://github.com/Farooqsarwar';
   static const String fiverrUrl    = 'https://www.fiverr.com/farooqsarwar227';
   static const String fiverrGigUrl = 'https://www.fiverr.com/s/R78m1VD';
